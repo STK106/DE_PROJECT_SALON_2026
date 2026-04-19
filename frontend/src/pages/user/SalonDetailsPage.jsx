@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { MapPin, Clock, Star, Phone, Mail, Scissors, Users, ArrowLeft } from 'lucide-react';
+import { MapPin, Clock, Star, Phone, Mail, Scissors, Users, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { resolveMediaUrl } from '@/lib/media';
 import toast from 'react-hot-toast';
@@ -18,8 +18,10 @@ export default function SalonDetailsPage() {
   const [services, setServices] = useState([]);
   const [staff, setStaff] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   useEffect(() => {
+    let mounted = true;
     const fetchData = async () => {
       try {
         const [salonRes, servicesRes, staffRes] = await Promise.all([
@@ -27,18 +29,35 @@ export default function SalonDetailsPage() {
           serviceService.getBySalon(id),
           staffService.getBySalon(id),
         ]);
-        setSalon(salonRes.data.salon);
-        setServices(servicesRes.data.services);
-        setStaff(staffRes.data.staff);
+        if (mounted) {
+          setSalon(salonRes.data.salon);
+          setServices(servicesRes.data.services);
+          setStaff(staffRes.data.staff);
+          setCurrentImageIndex(0);
+        }
       } catch (err) {
-        toast.error('Failed to load salon details');
-        navigate('/');
+        if (mounted) {
+          toast.error('Failed to load salon details');
+          navigate('/');
+        }
       } finally {
-        setLoading(false);
+        if (mounted) setLoading(false);
       }
     };
     fetchData();
+    return () => { mounted = false; };
   }, [id, navigate]);
+
+  // Auto-rotate images every 2 seconds
+  useEffect(() => {
+    if (!salon?.images || salon.images.length <= 1) return;
+
+    const interval = setInterval(() => {
+      setCurrentImageIndex(prev => (prev + 1) % salon.images.length);
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [salon?.images]);
 
   if (loading) {
     return (
@@ -68,17 +87,49 @@ export default function SalonDetailsPage() {
         <ArrowLeft className="h-4 w-4 mr-2" /> Back
       </Button>
 
-      {/* Salon Images */}
+      {/* Salon Images with Carousel */}
       <div className="mb-8">
         {salon.images && salon.images.length > 0 ? (
-          <div className="overflow-x-auto pb-2">
-            <div className="flex gap-4 min-w-max">
-              {salon.images.map((img, i) => (
-                <div key={i} className="h-64 w-[420px] rounded-lg overflow-hidden border shrink-0">
-                  <img src={resolveMediaUrl(img)} alt={salon.name} className="w-full h-full object-cover" />
-                </div>
-              ))}
+          <div className="relative">
+            <div className="rounded-lg overflow-hidden border bg-muted">
+              <img 
+                src={resolveMediaUrl(salon.images[currentImageIndex])} 
+                alt={salon.name} 
+                className="w-full h-80 object-cover"
+              />
             </div>
+            
+            {salon.images.length > 1 && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setCurrentImageIndex(prev => prev === 0 ? salon.images.length - 1 : prev - 1)}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-black"
+                >
+                  <ChevronLeft className="h-6 w-6" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setCurrentImageIndex(prev => prev === salon.images.length - 1 ? 0 : prev + 1)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-black"
+                >
+                  <ChevronRight className="h-6 w-6" />
+                </Button>
+                
+                <div className="flex justify-center gap-2 mt-3">
+                  {salon.images.map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setCurrentImageIndex(i)}
+                      className={`h-2 rounded-full transition-all ${i === currentImageIndex ? 'bg-primary w-6' : 'bg-muted-foreground w-2'}`}
+                      aria-label={`Go to image ${i + 1}`}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         ) : (
           <div className="aspect-[2/1] bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg flex items-center justify-center">
