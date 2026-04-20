@@ -42,9 +42,14 @@ export default function ManageSalons() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Manage Salons</h1>
+      <Card className="border-primary/20 bg-gradient-to-r from-primary/10 via-background to-background">
+        <CardContent className="p-5">
+          <h1 className="text-2xl font-bold">Manage Salons</h1>
+          <p className="text-sm text-muted-foreground">Approve new salons and keep marketplace quality high.</p>
+        </CardContent>
+      </Card>
 
-      <Card>
+      <Card className="shadow-sm">
         <CardContent className="p-0">
           {loading ? (
             <div className="p-8 text-center text-muted-foreground">Loading...</div>

@@ -7,6 +7,8 @@ import { resolveMediaUrl } from '@/lib/media';
 
 export default function SalonCard({ salon }) {
   const navigate = useNavigate();
+  const hasRatings = Number(salon.total_ratings || 0) > 0;
+  const displayRating = hasRatings ? Number(salon.rating).toFixed(1) : '0.0';
 
   return (
     <Card className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer group"
@@ -23,12 +25,10 @@ export default function SalonCard({ salon }) {
             <Scissors className="h-12 w-12 text-primary/40" />
           </div>
         )}
-        {salon.rating > 0 && (
-          <Badge className="absolute top-3 right-3 bg-white/90 text-foreground hover:bg-white">
-            <Star className="h-3 w-3 fill-yellow-400 text-yellow-400 mr-1" />
-            {Number(salon.rating).toFixed(1)}
-          </Badge>
-        )}
+        <Badge className="absolute top-3 right-3 bg-white/90 text-foreground hover:bg-white">
+          <Star className="h-3 w-3 fill-yellow-400 text-yellow-400 mr-1" />
+          {displayRating}
+        </Badge>
       </div>
       <CardContent className="p-4">
         <h3 className="font-semibold text-lg mb-1 line-clamp-1">{salon.name}</h3>
@@ -38,7 +38,7 @@ export default function SalonCard({ salon }) {
         </div>
         <div className="flex items-center justify-between">
           <span className="text-xs text-muted-foreground">
-            {salon.service_count || 0} services
+            {salon.service_count || 0} services • {hasRatings ? `${salon.total_ratings} ratings` : 'No ratings yet'}
           </span>
           <Button size="sm" variant="secondary">View Details</Button>
         </div>

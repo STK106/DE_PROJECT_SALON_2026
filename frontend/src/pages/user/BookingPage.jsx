@@ -9,6 +9,8 @@ import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, Calendar, Clock, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -97,9 +99,9 @@ export default function BookingPage() {
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-2xl">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-muted rounded w-1/3" />
-          <div className="h-64 bg-muted rounded" />
+        <div className="space-y-4">
+          <Skeleton className="h-8 w-1/3" />
+          <Skeleton className="h-64 w-full" />
         </div>
       </div>
     );
@@ -132,8 +134,19 @@ export default function BookingPage() {
         <ArrowLeft className="h-4 w-4 mr-2" /> Back
       </Button>
 
-      <h1 className="text-2xl font-bold mb-1">Book Appointment</h1>
-      <p className="text-muted-foreground mb-6">{salon?.name}</p>
+      <Card className="mb-6 border-primary/20 bg-gradient-to-r from-primary/10 via-background to-background">
+        <CardContent className="p-5">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h1 className="text-2xl font-bold mb-1">Book Appointment</h1>
+              <p className="text-muted-foreground">{salon?.name}</p>
+            </div>
+            <Badge variant="secondary">Secure booking</Badge>
+          </div>
+          <Separator className="my-4" />
+          <p className="text-sm text-muted-foreground">Choose service, date, and slot to confirm your appointment.</p>
+        </CardContent>
+      </Card>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Service Selection */}

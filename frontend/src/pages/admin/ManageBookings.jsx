@@ -47,7 +47,12 @@ export default function AdminManageBookings() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">All Bookings</h1>
+      <Card className="border-primary/20 bg-gradient-to-r from-primary/10 via-background to-background">
+        <CardContent className="p-5">
+          <h1 className="text-2xl font-bold">All Bookings</h1>
+          <p className="text-sm text-muted-foreground">Audit platform-wide activity and booking trends.</p>
+        </CardContent>
+      </Card>
 
       <div className="flex flex-wrap gap-3">
         <Select value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }} className="w-40">
@@ -64,7 +69,7 @@ export default function AdminManageBookings() {
         )}
       </div>
 
-      <Card>
+      <Card className="shadow-sm">
         <CardContent className="p-0">
           {loading ? (
             <div className="p-8 text-center text-muted-foreground">Loading...</div>

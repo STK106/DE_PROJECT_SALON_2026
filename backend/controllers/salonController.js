@@ -1,5 +1,6 @@
 const Salon = require('../models/Salon');
 const BlockedSlot = require('../models/BlockedSlot');
+const Booking = require('../models/Booking');
 const fs = require('fs');
 const path = require('path');
 
@@ -182,6 +183,42 @@ exports.removeBlockedSlot = async (req, res, next) => {
     const result = await BlockedSlot.delete(req.params.slotId);
     if (!result) return res.status(404).json({ error: 'Blocked slot not found.' });
     res.json({ message: 'Blocked slot removed' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.rateSalon = async (req, res, next) => {
+  try {
+    const salon = await Salon.findById(req.params.id);
+    if (!salon) return res.status(404).json({ error: 'Salon not found.' });
+
+    const bookingId = req.body.booking_id;
+    if (!bookingId) {
+      return res.status(400).json({ error: 'Booking is required for rating.' });
+    }
+
+    const value = parseInt(req.body.rating, 10);
+    if (Number.isNaN(value) || value < 1 || value > 5) {
+      return res.status(400).json({ error: 'Rating must be between 1 and 5.' });
+    }
+
+    const booking = await Booking.findCompletedBookingForRating(bookingId, req.user.id, salon.id);
+    if (!booking) {
+      return res.status(403).json({ error: 'You can rate only from your completed booking.' });
+    }
+
+    const marked = await Booking.markRated(bookingId, req.user.id, salon.id);
+    if (!marked) {
+      return res.status(400).json({ error: 'You have already rated this booking.' });
+    }
+
+    const updatedSalon = await Salon.addRating(salon.id, value);
+    res.json({
+      message: 'Thank you for your rating!',
+      rating: updatedSalon.rating,
+      total_ratings: updatedSalon.total_ratings,
+    });
   } catch (err) {
     next(err);
   }

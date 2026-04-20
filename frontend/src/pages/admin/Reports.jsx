@@ -3,6 +3,7 @@ import { adminService } from '@/services/adminService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { BarChart3 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -33,16 +34,21 @@ export default function Reports() {
     return (
       <div className="space-y-6">
         <h1 className="text-2xl font-bold">Reports</h1>
-        <div className="h-64 rounded-lg border bg-card animate-pulse" />
+        <Skeleton className="h-64 rounded-lg border" />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold flex items-center gap-2">
-        <BarChart3 className="h-6 w-6" /> Reports Overview
-      </h1>
+      <Card className="border-primary/20 bg-gradient-to-r from-primary/10 via-background to-background">
+        <CardContent className="p-5">
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            <BarChart3 className="h-6 w-6" /> Reports Overview
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">Snapshot of key platform metrics and recent transactions.</p>
+        </CardContent>
+      </Card>
 
       {/* Summary Cards */}
       {stats && (
@@ -87,7 +93,7 @@ export default function Reports() {
       )}
 
       {/* Recent Bookings Table */}
-      <Card>
+      <Card className="shadow-sm">
         <CardHeader>
           <CardTitle className="text-lg">Recent Bookings</CardTitle>
         </CardHeader>

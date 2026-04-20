@@ -3,6 +3,8 @@ import { bookingService } from '@/services/bookingService';
 import BookingCard from '@/components/common/BookingCard';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Calendar } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -42,11 +44,22 @@ export default function MyBookingsPage() {
     }
   };
 
+  const handleRated = (id) => {
+    setBookings((prev) => prev.map((booking) => (
+      booking.id === id ? { ...booking, user_rated: true } : booking
+    )));
+  };
+
   const totalPages = Math.ceil(total / 10);
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-3xl">
-      <h1 className="text-2xl font-bold mb-6">My Bookings</h1>
+      <Card className="mb-6 border-primary/20 bg-gradient-to-r from-primary/10 via-background to-background">
+        <CardContent className="p-5">
+          <h1 className="text-2xl font-bold">My Bookings</h1>
+          <p className="text-sm text-muted-foreground">Track all appointment statuses in one place.</p>
+        </CardContent>
+      </Card>
 
       <Tabs value={tab} onValueChange={(v) => { setTab(v); setPage(1); }}>
         <TabsList className="mb-6">
@@ -61,7 +74,7 @@ export default function MyBookingsPage() {
           {loading ? (
             <div className="space-y-3">
               {[...Array(3)].map((_, i) => (
-                <div key={i} className="h-24 rounded-lg border bg-card animate-pulse" />
+                <Skeleton key={i} className="h-24 w-full rounded-lg" />
               ))}
             </div>
           ) : bookings.length === 0 ? (
@@ -73,7 +86,7 @@ export default function MyBookingsPage() {
           ) : (
             <div className="space-y-3">
               {bookings.map((booking) => (
-                <BookingCard key={booking.id} booking={booking} onCancel={handleCancel} />
+                <BookingCard key={booking.id} booking={booking} onCancel={handleCancel} onRated={handleRated} />
               ))}
             </div>
           )}

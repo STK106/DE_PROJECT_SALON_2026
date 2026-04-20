@@ -11,6 +11,7 @@ export const salonService = {
     headers: { 'Content-Type': 'multipart/form-data' },
   }),
   deleteImage: (index) => api.delete(`/salons/images/${index}`),
+  rateSalon: (id, bookingId, rating) => api.post(`/salons/${id}/rate`, { booking_id: bookingId, rating }),
   getBlockedSlots: () => api.get('/salons/availability/blocked'),
   addBlockedSlot: (data) => api.post('/salons/availability/block', data),
   removeBlockedSlot: (id) => api.delete(`/salons/availability/block/${id}`),

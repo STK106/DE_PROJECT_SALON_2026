@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Avatar } from '@/components/ui/avatar';
 import { User, Mail, Phone, Shield } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -45,17 +46,18 @@ export default function ProfilePage() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
-      <h1 className="text-2xl font-bold mb-6">My Profile</h1>
+      <Card className="mb-6 border-primary/20 bg-gradient-to-r from-primary/10 via-background to-background">
+        <CardContent className="p-5">
+          <h1 className="text-2xl font-bold">My Profile</h1>
+          <p className="text-sm text-muted-foreground">Manage your account information and contact details.</p>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-                <span className="text-2xl font-bold text-primary">
-                  {user.name?.charAt(0).toUpperCase()}
-                </span>
-              </div>
+              <Avatar fallback={user.name?.charAt(0).toUpperCase()} className="h-16 w-16 text-xl bg-primary/10 text-primary" />
               <div>
                 <CardTitle>{user.name}</CardTitle>
                 <div className="flex items-center gap-2 mt-1">

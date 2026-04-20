@@ -3,11 +3,11 @@ import { salonService } from '@/services/salonService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Select } from '@/components/ui/select';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Trash2, Clock, CalendarOff } from 'lucide-react';
+import { Plus, Trash2, CalendarOff } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function Availability() {
@@ -62,10 +62,15 @@ export default function Availability() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Availability Management</h1>
+      <Card className="border-primary/20 bg-gradient-to-r from-primary/10 via-background to-background">
+        <CardContent className="p-5">
+          <h1 className="text-2xl font-bold">Availability Management</h1>
+          <p className="text-sm text-muted-foreground">Block dates and times to avoid scheduling conflicts.</p>
+        </CardContent>
+      </Card>
 
       {/* Block Slot Form */}
-      <Card>
+      <Card className="shadow-sm">
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
             <CalendarOff className="h-5 w-5" /> Block Time Slot
@@ -84,10 +89,14 @@ export default function Availability() {
               </div>
             </div>
 
-            <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" checked={form.is_full_day} onChange={(e) => setForm({ ...form, is_full_day: e.target.checked })} className="rounded border-gray-300" />
-              Block full day
-            </label>
+            <div className="flex items-center gap-2 text-sm">
+              <Checkbox
+                id="full-day"
+                checked={form.is_full_day}
+                onCheckedChange={(checked) => setForm({ ...form, is_full_day: Boolean(checked) })}
+              />
+              <Label htmlFor="full-day" className="cursor-pointer font-normal">Block full day</Label>
+            </div>
 
             {!form.is_full_day && (
               <div className="grid grid-cols-2 gap-4">
@@ -110,7 +119,7 @@ export default function Availability() {
       </Card>
 
       {/* Blocked Slots List */}
-      <Card>
+      <Card className="shadow-sm">
         <CardHeader>
           <CardTitle className="text-lg">Blocked Slots</CardTitle>
         </CardHeader>

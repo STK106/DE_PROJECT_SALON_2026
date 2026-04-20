@@ -117,6 +117,31 @@ const Salon = {
     return result.rows[0];
   },
 
+  async addRating(id, rating) {
+    const salon = await query(
+      'SELECT rating, total_ratings FROM salons WHERE id = $1',
+      [id]
+    );
+    if (!salon.rows[0]) return null;
+
+    const currentRating = parseFloat(salon.rows[0].rating || 0);
+    const currentTotal = parseInt(salon.rows[0].total_ratings || 0, 10);
+    const nextTotal = currentTotal + 1;
+    const nextRating = ((currentRating * currentTotal) + rating) / nextTotal;
+
+    const updated = await query(
+      `UPDATE salons
+       SET rating = $1,
+           total_ratings = $2,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $3
+       RETURNING *`,
+      [nextRating.toFixed(1), nextTotal, id]
+    );
+
+    return updated.rows[0];
+  },
+
   async getStats(ownerId) {
     const salon = await query('SELECT id FROM salons WHERE owner_id = $1', [ownerId]);
     if (!salon.rows[0]) return null;

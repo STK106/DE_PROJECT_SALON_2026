@@ -47,7 +47,16 @@ export default function ManageBookings() {
     try {
       await bookingService.updateStatus(id, newStatus);
       toast.success(`Booking ${newStatus}`);
-      fetchBookings();
+
+      // Update row instantly so owner sees "Complete" right after "Accept" in the same section.
+      setBookings((prev) => prev.map((booking) => (
+        booking.id === id ? { ...booking, status: newStatus } : booking
+      )));
+
+      // If current filter no longer matches this row, refetch list to keep table accurate.
+      if (status && status !== newStatus) {
+        fetchBookings();
+      }
     } catch (err) {
       toast.error(err.response?.data?.error || 'Update failed');
     }
@@ -57,7 +66,12 @@ export default function ManageBookings() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Manage Bookings</h1>
+      <Card className="border-primary/20 bg-gradient-to-r from-primary/10 via-background to-background">
+        <CardContent className="p-5">
+          <h1 className="text-2xl font-bold">Manage Bookings</h1>
+          <p className="text-sm text-muted-foreground">Accept, reject, and complete bookings from one queue.</p>
+        </CardContent>
+      </Card>
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3">
@@ -75,7 +89,7 @@ export default function ManageBookings() {
         )}
       </div>
 
-      <Card>
+      <Card className="shadow-sm">
         <CardContent className="p-0">
           {loading ? (
             <div className="p-8 text-center text-muted-foreground">Loading...</div>
@@ -115,10 +129,10 @@ export default function ManageBookings() {
                       {b.status === 'pending' && (
                         <div className="flex gap-1 justify-end">
                           <Button size="sm" variant="ghost" onClick={() => handleStatusUpdate(b.id, 'confirmed')}>
-                            <Check className="h-4 w-4 text-green-600" />
+                            <Check className="h-4 w-4 text-green-600 mr-1" /> Accept
                           </Button>
                           <Button size="sm" variant="ghost" onClick={() => handleStatusUpdate(b.id, 'rejected')}>
-                            <X className="h-4 w-4 text-destructive" />
+                            <X className="h-4 w-4 text-destructive mr-1" /> Reject
                           </Button>
                         </div>
                       )}

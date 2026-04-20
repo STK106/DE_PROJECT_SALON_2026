@@ -1,0 +1,64 @@
+# ------------------------------
+# Dependencies
+# ------------------------------
+**/node_modules/
+
+# ------------------------------
+# Build outputs
+# ------------------------------
+**/dist/
+**/build/
+**/.next/
+**/out/
+**/.turbo/
+**/.vite/
+**/.cache/
+
+# ------------------------------
+# Test and coverage
+# ------------------------------
+**/coverage/
+
+# ------------------------------
+# Logs
+# ------------------------------
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ------------------------------
+# Environment files (keep examples)
+# ------------------------------
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# ------------------------------
+# TypeScript
+# ------------------------------
+*.tsbuildinfo
+
+# ------------------------------
+# Runtime uploads (keep placeholder)
+# ------------------------------
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# ------------------------------
+# Editor / IDE
+# ------------------------------
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# ------------------------------
+# OS files
+# ------------------------------
+.DS_Store
+Thumbs.db
+Desktop.ini

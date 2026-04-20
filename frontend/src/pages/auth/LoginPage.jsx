@@ -6,7 +6,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Scissors } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Scissors, ShieldCheck, Clock3 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function LoginPage() {
@@ -38,9 +40,12 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-primary/10 p-4">
-      <Card className="w-full max-w-md">
+    <div className="starry-shell min-h-screen flex items-center justify-center p-4">
+      <Card className="w-full max-w-md border-primary/20 shadow-lg">
         <CardHeader className="text-center">
+          <div className="mb-3 flex justify-center">
+            <Badge variant="secondary">Welcome back</Badge>
+          </div>
           <div className="flex justify-center mb-4">
             <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
               <Scissors className="h-6 w-6 text-primary" />
@@ -75,6 +80,17 @@ export default function LoginPage() {
               {loading ? 'Signing in...' : 'Sign in'}
             </Button>
           </form>
+          <div className="my-5">
+            <Separator />
+          </div>
+          <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1.5 rounded-md bg-muted/60 px-2 py-1.5">
+              <ShieldCheck className="h-3.5 w-3.5" /> Secure login
+            </div>
+            <div className="flex items-center gap-1.5 rounded-md bg-muted/60 px-2 py-1.5">
+              <Clock3 className="h-3.5 w-3.5" /> Fast booking
+            </div>
+          </div>
           <p className="mt-4 text-center text-sm text-muted-foreground">
             Don't have an account?{' '}
             <Link to="/register" className="text-primary hover:underline font-medium">

@@ -12,7 +12,8 @@ const Booking = {
 
   async findById(id) {
     const result = await query(
-      `SELECT b.*, s.name as salon_name, sv.name as service_name, sv.price as service_price,
+      `SELECT b.*, COALESCE(b.user_rated, false) as user_rated,
+       s.name as salon_name, sv.name as service_name, sv.price as service_price,
        sv.duration as service_duration, u.name as user_name, u.email as user_email,
        st.name as staff_name
        FROM bookings b
@@ -42,7 +43,8 @@ const Booking = {
     const where = conditions.join(' AND ');
 
     const result = await query(
-      `SELECT b.*, s.name as salon_name, s.address as salon_address,
+      `SELECT b.*, COALESCE(b.user_rated, false) as user_rated,
+       s.name as salon_name, s.address as salon_address,
        sv.name as service_name, sv.price as service_price, sv.duration as service_duration,
        st.name as staff_name
        FROM bookings b
@@ -124,6 +126,58 @@ const Booking = {
       [status, id]
     );
     return result.rows[0];
+  },
+
+  async hasCompletedBooking(userId, salonId) {
+    const result = await query(
+      `SELECT EXISTS(
+        SELECT 1 FROM bookings
+        WHERE user_id = $1 AND salon_id = $2 AND status = 'completed'
+      ) AS has_completed`,
+      [userId, salonId]
+    );
+    return result.rows[0]?.has_completed === true;
+  },
+
+  async findCompletedBookingForRating(bookingId, userId, salonId) {
+    const result = await query(
+      `SELECT *
+       FROM bookings
+       WHERE id = $1
+         AND user_id = $2
+         AND salon_id = $3
+         AND status = 'completed'
+       LIMIT 1`,
+      [bookingId, userId, salonId]
+    );
+    return result.rows[0];
+  },
+
+  async markRated(bookingId, userId, salonId) {
+    const result = await query(
+      `UPDATE bookings
+       SET user_rated = true,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $1
+         AND user_id = $2
+         AND salon_id = $3
+         AND status = 'completed'
+         AND COALESCE(user_rated, false) = false
+       RETURNING id`,
+      [bookingId, userId, salonId]
+    );
+    return result.rows.length > 0;
+  },
+
+  async hasAlreadyRated(bookingId, userId, salonId) {
+    const result = await query(
+      `SELECT EXISTS(
+        SELECT 1 FROM bookings
+        WHERE id = $1 AND user_id = $2 AND salon_id = $3 AND status = 'completed' AND COALESCE(user_rated, false) = true
+      ) AS has_rated`,
+      [bookingId, userId, salonId]
+    );
+    return result.rows[0]?.has_rated === true;
   },
 
   async getAvailableSlots(salonId, date, duration) {

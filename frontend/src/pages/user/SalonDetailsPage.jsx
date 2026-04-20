@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
 import { MapPin, Clock, Star, Phone, Mail, Scissors, Users, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { resolveMediaUrl } from '@/lib/media';
@@ -19,6 +20,8 @@ export default function SalonDetailsPage() {
   const [staff, setStaff] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [ratingValue, setRatingValue] = useState(0);
+  const [ratingSubmitting, setRatingSubmitting] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -62,10 +65,10 @@ export default function SalonDetailsPage() {
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="animate-pulse space-y-6">
-          <div className="h-64 bg-muted rounded-lg" />
-          <div className="h-8 bg-muted rounded w-1/3" />
-          <div className="h-4 bg-muted rounded w-1/2" />
+        <div className="space-y-6">
+          <Skeleton className="h-64 w-full rounded-lg" />
+          <Skeleton className="h-8 w-1/3" />
+          <Skeleton className="h-4 w-1/2" />
         </div>
       </div>
     );
@@ -81,11 +84,50 @@ export default function SalonDetailsPage() {
     return acc;
   }, {});
 
+  const submitRating = async () => {
+    if (!ratingValue) {
+      toast.error('Please select a rating first');
+      return;
+    }
+
+    try {
+      setRatingSubmitting(true);
+      const res = await salonService.rateSalon(salon.id, ratingValue);
+      setSalon((prev) => ({
+        ...prev,
+        rating: res.data.rating,
+        total_ratings: res.data.total_ratings,
+      }));
+      toast.success(res.data.message || 'Rating submitted');
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to submit rating');
+    } finally {
+      setRatingSubmitting(false);
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-5xl">
       <Button variant="ghost" className="mb-4" onClick={() => navigate(-1)}>
         <ArrowLeft className="h-4 w-4 mr-2" /> Back
       </Button>
+
+      <Card className="mb-6 border-primary/20 bg-gradient-to-r from-primary/10 via-background to-background">
+        <CardContent className="p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h1 className="text-2xl font-bold">{salon.name}</h1>
+              <p className="text-sm text-muted-foreground">Explore services, team, and available details before booking.</p>
+            </div>
+            {salon.rating > 0 && (
+              <Badge variant="secondary" className="text-sm">
+                <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400 mr-1" />
+                {Number(salon.rating).toFixed(1)}
+              </Badge>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Salon Images with Carousel */}
       <div className="mb-8">
@@ -120,8 +162,11 @@ export default function SalonDetailsPage() {
                 
                 <div className="flex justify-center gap-2 mt-3">
                   {salon.images.map((_, i) => (
-                    <button
+                    <Button
                       key={i}
+                      type="button"
+                      variant="ghost"
+                      size="icon"
                       onClick={() => setCurrentImageIndex(i)}
                       className={`h-2 rounded-full transition-all ${i === currentImageIndex ? 'bg-primary w-6' : 'bg-muted-foreground w-2'}`}
                       aria-label={`Go to image ${i + 1}`}
@@ -143,7 +188,7 @@ export default function SalonDetailsPage() {
         <div className="lg:col-span-2 space-y-6">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-3xl font-bold">{salon.name}</h1>
+              <h1 className="text-3xl font-bold">About {salon.name}</h1>
               {salon.rating > 0 && (
                 <Badge variant="secondary" className="text-sm">
                   <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400 mr-1" />
@@ -261,6 +306,35 @@ export default function SalonDetailsPage() {
                       <Badge key={day} variant="secondary" className="text-xs">{day.trim()}</Badge>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {user?.role === 'user' && (
+                <div className="pt-3 border-t">
+                  <p className="text-sm font-medium mb-2">Rate this salon</p>
+                  <div className="flex items-center gap-1 mb-2">
+                    {[1, 2, 3, 4, 5].map((value) => (
+                      <Button
+                        key={value}
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setRatingValue(value)}
+                        className="p-1"
+                        aria-label={`Rate ${value} star`}
+                      >
+                        <Star
+                          className={`h-5 w-5 ${value <= ratingValue ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground'}`}
+                        />
+                      </Button>
+                    ))}
+                  </div>
+                  <Button size="sm" onClick={submitRating} disabled={ratingSubmitting || ratingValue === 0}>
+                    {ratingSubmitting ? 'Submitting...' : 'Submit Rating'}
+                  </Button>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Current rating: {Number(salon.rating || 0).toFixed(1)} ({salon.total_ratings || 0} ratings)
+                  </p>
                 </div>
               )}
             </CardContent>

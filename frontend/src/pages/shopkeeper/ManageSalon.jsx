@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Store, Upload, CheckCircle, Clock, Trash2 } from 'lucide-react';
 import { resolveMediaUrl } from '@/lib/media';
 import toast from 'react-hot-toast';
@@ -100,19 +102,31 @@ export default function ManageSalon() {
   };
 
   if (loading) {
-    return <div className="animate-pulse space-y-4"><div className="h-8 bg-muted rounded w-1/3" /><div className="h-64 bg-muted rounded" /></div>;
+    return (
+      <div className="space-y-4">
+        <Skeleton className="h-8 w-1/3" />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    );
   }
 
   return (
     <div className="space-y-6 max-w-3xl">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{isNew ? 'Create Salon' : 'Manage Salon'}</h1>
-        {salon && (
-          <Badge variant={salon.is_approved ? 'success' : 'warning'}>
-            {salon.is_approved ? <><CheckCircle className="h-3 w-3 mr-1" /> Approved</> : <><Clock className="h-3 w-3 mr-1" /> Pending Approval</>}
-          </Badge>
-        )}
-      </div>
+      <Card className="border-primary/20 bg-gradient-to-r from-primary/10 via-background to-background">
+        <CardContent className="p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h1 className="text-2xl font-bold">{isNew ? 'Create Salon' : 'Manage Salon'}</h1>
+              <p className="text-sm text-muted-foreground">Keep your profile fresh to improve booking conversion.</p>
+            </div>
+            {salon && (
+              <Badge variant={salon.is_approved ? 'success' : 'warning'}>
+                {salon.is_approved ? <><CheckCircle className="h-3 w-3 mr-1" /> Approved</> : <><Clock className="h-3 w-3 mr-1" /> Pending Approval</>}
+              </Badge>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       <form onSubmit={handleSubmit}>
         <Card>
@@ -120,6 +134,12 @@ export default function ManageSalon() {
             <CardTitle className="text-lg flex items-center gap-2"><Store className="h-5 w-5" /> Salon Details</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="flex flex-wrap gap-2">
+              <Badge variant="secondary">Profile essentials</Badge>
+              <Badge variant="secondary">Business hours</Badge>
+              <Badge variant="secondary">Contact details</Badge>
+            </div>
+            <Separator />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Salon Name *</Label>
@@ -192,14 +212,16 @@ export default function ManageSalon() {
                 {salon.images.map((img, i) => (
                   <div key={i} className="relative aspect-video rounded-lg overflow-hidden border group">
                     <img src={resolveMediaUrl(img)} alt="" className="w-full h-full object-cover" />
-                    <button
+                    <Button
                       type="button"
+                      size="icon"
+                      variant="secondary"
                       onClick={() => handleDeleteImage(i)}
-                      className="absolute top-2 right-2 h-8 w-8 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute top-2 right-2 h-8 w-8 bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70"
                       aria-label="Delete image"
                     >
                       <Trash2 className="h-4 w-4" />
-                    </button>
+                    </Button>
                   </div>
                 ))}
               </div>

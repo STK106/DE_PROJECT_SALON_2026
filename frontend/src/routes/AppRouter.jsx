@@ -1,5 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import ProtectedRoute from '@/components/common/ProtectedRoute';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 // Layouts
 import Navbar from '@/components/layout/Navbar';
@@ -102,9 +105,15 @@ export default function AppRouter() {
         <Route path="*" element={
           <PublicLayout>
             <div className="flex flex-col items-center justify-center min-h-[60vh]">
-              <h1 className="text-4xl font-bold mb-4">404</h1>
-              <p className="text-muted-foreground mb-6">Page not found</p>
-              <a href="/" className="text-primary underline">Go Home</a>
+              <Card className="w-full max-w-md text-center">
+                <CardContent className="p-8">
+                  <h1 className="text-4xl font-bold mb-3">404</h1>
+                  <p className="text-muted-foreground mb-6">Page not found</p>
+                  <Button asChild>
+                    <Link to="/">Go Home</Link>
+                  </Button>
+                </CardContent>
+              </Card>
             </div>
           </PublicLayout>
         } />

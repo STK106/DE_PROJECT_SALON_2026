@@ -31,6 +31,11 @@ router.post('/availability/block', auth, roleCheck('shopkeeper'), [
 ], validate, salonController.addBlockedSlot);
 router.delete('/availability/block/:slotId', auth, roleCheck('shopkeeper'), salonController.removeBlockedSlot);
 
+// User rating route
+router.post('/:id/rate', auth, roleCheck('user'), [
+  body('rating').isInt({ min: 1, max: 5 }).withMessage('Rating must be between 1 and 5')
+], validate, salonController.rateSalon);
+
 // Public - get by id (MUST be last to avoid catching named routes)
 router.get('/:id', salonController.getById);
 

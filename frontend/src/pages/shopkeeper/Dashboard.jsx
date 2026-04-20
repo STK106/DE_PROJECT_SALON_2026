@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { salonService } from '@/services/salonService';
 import StatsCard from '@/components/common/StatsCard';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Calendar, CalendarCheck, Clock, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -28,7 +31,7 @@ export default function ShopkeeperDashboard() {
         <h1 className="text-2xl font-bold">Dashboard</h1>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-32 rounded-lg border bg-card animate-pulse" />
+            <Skeleton key={i} className="h-32 w-full rounded-lg" />
           ))}
         </div>
       </div>
@@ -37,7 +40,17 @@ export default function ShopkeeperDashboard() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Dashboard</h1>
+      <Card className="border-primary/20 bg-gradient-to-r from-primary/10 via-background to-background">
+        <CardContent className="p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h1 className="text-2xl font-bold">Shopkeeper Dashboard</h1>
+              <p className="text-sm text-muted-foreground">Track bookings and keep daily operations smooth.</p>
+            </div>
+            <Badge variant="secondary">Live overview</Badge>
+          </div>
+        </CardContent>
+      </Card>
 
       {stats ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -45,21 +58,25 @@ export default function ShopkeeperDashboard() {
             title="Total Bookings"
             value={stats.total_bookings}
             icon={Calendar}
+            description="All-time requests"
           />
           <StatsCard
             title="Today's Bookings"
             value={stats.today_bookings}
             icon={CalendarCheck}
+            description="Scheduled today"
           />
           <StatsCard
             title="Pending"
             value={stats.pending_bookings}
             icon={Clock}
+            description="Need action"
           />
           <StatsCard
             title="Completed"
             value={stats.completed_bookings}
             icon={CheckCircle}
+            description="Finished visits"
           />
         </div>
       ) : (

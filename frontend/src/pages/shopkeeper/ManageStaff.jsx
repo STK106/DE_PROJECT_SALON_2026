@@ -6,7 +6,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Plus, Pencil, Trash2, Users } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Plus, Pencil, Trash2, Users, MoreHorizontal } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const emptyForm = { name: '', email: '', phone: '', role: 'stylist', specialization: '' };
@@ -81,17 +88,34 @@ export default function ManageStaff() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Manage Staff</h1>
-        <Button onClick={() => handleOpen()}>
-          <Plus className="h-4 w-4 mr-2" /> Add Staff
-        </Button>
-      </div>
+      <Card className="border-primary/20 bg-gradient-to-r from-primary/10 via-background to-background">
+        <CardContent className="p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h1 className="text-2xl font-bold">Manage Staff</h1>
+              <p className="text-sm text-muted-foreground">Organize specialists so customers can book with confidence.</p>
+            </div>
+            <Button onClick={() => handleOpen()}>
+              <Plus className="h-4 w-4 mr-2" /> Add Staff
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
-      <Card>
+      <Card className="shadow-sm">
         <CardContent className="p-0">
           {loading ? (
-            <div className="p-8 text-center text-muted-foreground">Loading...</div>
+            <div className="space-y-2 p-4">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="grid grid-cols-5 gap-3">
+                  <Skeleton className="h-8" />
+                  <Skeleton className="h-8" />
+                  <Skeleton className="h-8" />
+                  <Skeleton className="h-8" />
+                  <Skeleton className="h-8" />
+                </div>
+              ))}
+            </div>
           ) : staff.length === 0 ? (
             <div className="p-8 text-center">
               <Users className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
@@ -115,13 +139,20 @@ export default function ManageStaff() {
                     <TableCell>{m.role}</TableCell>
                     <TableCell>{m.specialization || '-'}</TableCell>
                     <TableCell>{m.phone || m.email || '-'}</TableCell>
-                    <TableCell className="text-right space-x-2">
-                      <Button variant="ghost" size="icon" onClick={() => handleOpen(m)}>
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(m.id)}>
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger className="inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-accent">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleOpen(m)}>
+                            <Pencil className="mr-2 h-4 w-4" /> Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => handleDelete(m.id)}>
+                            <Trash2 className="mr-2 h-4 w-4" /> Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))}

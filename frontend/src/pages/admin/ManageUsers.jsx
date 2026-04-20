@@ -46,17 +46,24 @@ export default function ManageUsers() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Manage Users</h1>
-        <Select value={role} onChange={(e) => { setRole(e.target.value); setPage(1); }} className="w-40">
-          <option value="">All Roles</option>
-          <option value="user">Users</option>
-          <option value="shopkeeper">Shopkeepers</option>
-          <option value="admin">Admins</option>
-        </Select>
-      </div>
+      <Card className="border-primary/20 bg-gradient-to-r from-primary/10 via-background to-background">
+        <CardContent className="p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h1 className="text-2xl font-bold">Manage Users</h1>
+              <p className="text-sm text-muted-foreground">Review user access and block abusive accounts quickly.</p>
+            </div>
+            <Select value={role} onChange={(e) => { setRole(e.target.value); setPage(1); }} className="w-40">
+              <option value="">All Roles</option>
+              <option value="user">Users</option>
+              <option value="shopkeeper">Shopkeepers</option>
+              <option value="admin">Admins</option>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
 
-      <Card>
+      <Card className="shadow-sm">
         <CardContent className="p-0">
           {loading ? (
             <div className="p-8 text-center text-muted-foreground">Loading...</div>

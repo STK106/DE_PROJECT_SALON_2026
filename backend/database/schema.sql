@@ -79,6 +79,7 @@ CREATE TABLE bookings (
   start_time TIME NOT NULL,
   end_time TIME NOT NULL,
   status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'confirmed', 'completed', 'cancelled', 'rejected')),
+  user_rated BOOLEAN DEFAULT false,
   notes TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

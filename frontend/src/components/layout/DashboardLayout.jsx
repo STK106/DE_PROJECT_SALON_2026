@@ -2,6 +2,7 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import {
   LayoutDashboard, Store, Scissors, Users, Calendar, Clock,
   ChevronLeft, ChevronRight, LogOut, Shield, BarChart3, UserCheck
@@ -37,7 +38,7 @@ export default function DashboardLayout({ type = 'shopkeeper' }) {
   };
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="starry-dashboard flex h-screen">
       {/* Sidebar */}
       <aside
         className={cn(
@@ -86,18 +87,27 @@ export default function DashboardLayout({ type = 'shopkeeper' }) {
               {user.name} ({user.role})
             </div>
           )}
-          <button
+          <Button
+            variant="ghost"
             onClick={handleLogout}
-            className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+            className="flex w-full items-center justify-start gap-3 text-sm font-medium text-muted-foreground"
           >
             <LogOut className="h-4 w-4 shrink-0" />
             {!collapsed && <span>Log out</span>}
-          </button>
+          </Button>
         </div>
       </aside>
 
       {/* Main Content */}
       <main className="flex-1 overflow-auto">
+        <div className="sticky top-0 z-10 border-b bg-background/80 px-6 py-3 backdrop-blur">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">
+              {type === 'admin' ? 'Platform administration' : 'Salon operations'}
+            </p>
+            <Badge variant="secondary" className="capitalize">{type}</Badge>
+          </div>
+        </div>
         <div className="p-6">
           <Outlet />
         </div>

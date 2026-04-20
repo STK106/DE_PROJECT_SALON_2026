@@ -7,7 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
-import { Scissors } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Scissors, UserRound, Store } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function RegisterPage() {
@@ -49,9 +51,12 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-primary/10 p-4">
-      <Card className="w-full max-w-md">
+    <div className="starry-shell min-h-screen flex items-center justify-center p-4">
+      <Card className="w-full max-w-md border-primary/20 shadow-lg">
         <CardHeader className="text-center">
+          <div className="mb-3 flex justify-center">
+            <Badge variant="secondary">Create account</Badge>
+          </div>
           <div className="flex justify-center mb-4">
             <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
               <Scissors className="h-6 w-6 text-primary" />
@@ -100,6 +105,14 @@ export default function RegisterPage() {
                 <option value="user">Customer</option>
                 <option value="shopkeeper">Salon Owner</option>
               </Select>
+              <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                <div className="flex items-center gap-1.5 rounded-md bg-muted/60 px-2 py-1.5">
+                  <UserRound className="h-3.5 w-3.5" /> Customer
+                </div>
+                <div className="flex items-center gap-1.5 rounded-md bg-muted/60 px-2 py-1.5">
+                  <Store className="h-3.5 w-3.5" /> Salon owner
+                </div>
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password *</Label>
@@ -125,6 +138,9 @@ export default function RegisterPage() {
               {loading ? 'Creating account...' : 'Create account'}
             </Button>
           </form>
+          <div className="my-5">
+            <Separator />
+          </div>
           <p className="mt-4 text-center text-sm text-muted-foreground">
             Already have an account?{' '}
             <Link to="/login" className="text-primary hover:underline font-medium">

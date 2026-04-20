@@ -137,6 +137,19 @@ exports.updateStatus = async (req, res, next) => {
       return res.status(403).json({ error: 'Not authorized.' });
     }
 
+    // Enforce valid status transitions
+    if (booking.status === 'pending' && !['confirmed', 'rejected'].includes(status)) {
+      return res.status(400).json({ error: 'Pending booking can only be confirmed or rejected.' });
+    }
+
+    if (booking.status === 'confirmed' && status !== 'completed') {
+      return res.status(400).json({ error: 'Confirmed booking can only be marked completed.' });
+    }
+
+    if (['completed', 'rejected', 'cancelled'].includes(booking.status)) {
+      return res.status(400).json({ error: 'This booking status cannot be changed.' });
+    }
+
     const updated = await Booking.updateStatus(req.params.id, status);
     res.json({ message: `Booking ${status}`, booking: updated });
   } catch (err) {

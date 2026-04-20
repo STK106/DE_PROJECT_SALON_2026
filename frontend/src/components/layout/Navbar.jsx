@@ -1,7 +1,10 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Avatar } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/hooks/useAuth';
+import ModeToggle from '@/components/mode-toggle';
 import { Scissors, Menu, X, LogOut, User, Calendar, LayoutDashboard } from 'lucide-react';
 import { useState } from 'react';
 
@@ -23,11 +26,16 @@ export default function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-40 w-full border-b bg-background/90 backdrop-blur-md supports-[backdrop-filter]:bg-background/70">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <Link to="/" className="flex items-center space-x-2">
-          <Scissors className="h-6 w-6 text-primary" />
-          <span className="text-xl font-bold">GlowBook</span>
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+            <Scissors className="h-5 w-5 text-primary" />
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-lg font-bold">GlowBook</span>
+            <Badge variant="secondary" className="hidden sm:inline-flex">Salon Booking</Badge>
+          </div>
         </Link>
 
         {/* Desktop Nav */}
@@ -35,6 +43,7 @@ export default function Navbar() {
           <Link to="/" className="text-sm font-medium hover:text-primary transition-colors">
             Home
           </Link>
+          <ModeToggle />
           {user ? (
             <>
               {user.role === 'user' && (
@@ -48,12 +57,16 @@ export default function Navbar() {
               <Link to="/profile" className="text-sm font-medium hover:text-primary transition-colors">
                 <span className="flex items-center gap-1"><User className="h-4 w-4" /> Profile</span>
               </Link>
+              <Separator orientation="vertical" className="h-5" />
               <div className="flex items-center gap-3">
                 <Avatar
                   fallback={user.name?.charAt(0).toUpperCase()}
                   className="h-8 w-8"
                 />
-                <span className="text-sm font-medium">{user.name}</span>
+                <div className="flex flex-col leading-tight">
+                  <span className="text-sm font-medium">{user.name}</span>
+                  <span className="text-xs text-muted-foreground capitalize">{user.role}</span>
+                </div>
                 <Button variant="ghost" size="icon" onClick={handleLogout}>
                   <LogOut className="h-4 w-4" />
                 </Button>
@@ -68,17 +81,37 @@ export default function Navbar() {
         </nav>
 
         {/* Mobile Menu Toggle */}
-        <button className="md:hidden" onClick={() => setMobileOpen(!mobileOpen)}>
+        <Button
+          className="md:hidden"
+          variant="ghost"
+          size="icon"
+          onClick={() => setMobileOpen(!mobileOpen)}
+          aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+        >
           {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </button>
+        </Button>
       </div>
 
       {/* Mobile Nav */}
       {mobileOpen && (
-        <div className="md:hidden border-t bg-background p-4 space-y-3">
+        <div className="md:hidden border-t bg-background/95 backdrop-blur p-4 space-y-3">
+          <div className="flex items-center justify-between rounded-lg border bg-card p-3">
+            <span className="text-sm font-medium">Theme</span>
+            <ModeToggle />
+          </div>
           <Link to="/" className="block text-sm font-medium py-2" onClick={() => setMobileOpen(false)}>Home</Link>
           {user ? (
             <>
+              <div className="flex items-center gap-3 rounded-lg border bg-card p-3">
+                <Avatar
+                  fallback={user.name?.charAt(0).toUpperCase()}
+                  className="h-9 w-9"
+                />
+                <div>
+                  <p className="text-sm font-medium">{user.name}</p>
+                  <p className="text-xs text-muted-foreground capitalize">{user.role}</p>
+                </div>
+              </div>
               {user.role === 'user' && (
                 <Link to="/my-bookings" className="block text-sm font-medium py-2" onClick={() => setMobileOpen(false)}>My Bookings</Link>
               )}
