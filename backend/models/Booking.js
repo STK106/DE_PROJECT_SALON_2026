@@ -180,39 +180,47 @@ const Booking = {
     return result.rows[0]?.has_rated === true;
   },
 
-  async getAvailableSlots(salonId, date, duration) {
-    // Get salon hours
+  async getAvailabilityTimeline(salonId, date, duration, staffId = null) {
     const salonResult = await query(
       'SELECT opening_time, closing_time, working_days FROM salons WHERE id = $1',
       [salonId]
     );
-    if (!salonResult.rows[0]) return [];
+
+    if (!salonResult.rows[0]) {
+      return { slots: [], available_slots: [], next_available_slots: [] };
+    }
 
     const salon = salonResult.rows[0];
+    const slotDuration = duration || 30;
 
-    // Get existing bookings for the date
+    const bookingConditions = ['salon_id = $1', 'booking_date = $2', "status NOT IN ('cancelled', 'rejected')"];
+    const bookingParams = [salonId, date];
+    if (staffId) {
+      bookingConditions.push(`staff_id = $3`);
+      bookingParams.push(staffId);
+    }
+
     const bookingsResult = await query(
-      `SELECT start_time, end_time FROM bookings 
-       WHERE salon_id = $1 AND booking_date = $2 AND status NOT IN ('cancelled', 'rejected')
+      `SELECT start_time, end_time, staff_id
+       FROM bookings
+       WHERE ${bookingConditions.join(' AND ')}
        ORDER BY start_time`,
-      [salonId, date]
+      bookingParams
     );
 
-    // Get blocked slots for the date
     const blockedResult = await query(
-      `SELECT start_time, end_time, is_full_day FROM blocked_slots 
+      `SELECT start_time, end_time, is_full_day
+       FROM blocked_slots
        WHERE salon_id = $1 AND blocked_date = $2`,
       [salonId, date]
     );
 
-    // Check if full day blocked
-    if (blockedResult.rows.some(b => b.is_full_day)) return [];
+    if (blockedResult.rows.some((blockedSlot) => blockedSlot.is_full_day)) {
+      return { slots: [], available_slots: [], next_available_slots: [] };
+    }
 
     const booked = bookingsResult.rows;
     const blocked = blockedResult.rows;
-    const slotDuration = duration || 30;
-
-    // Generate available slots
     const slots = [];
     const opening = timeToMinutes(salon.opening_time);
     const closing = timeToMinutes(salon.closing_time);
@@ -221,20 +229,37 @@ const Booking = {
       const slotStart = minutesToTime(time);
       const slotEnd = minutesToTime(time + slotDuration);
 
-      const isBooked = booked.some(b =>
-        timeOverlaps(slotStart, slotEnd, b.start_time, b.end_time)
+      const bookingConflict = booked.find((booking) =>
+        timeOverlaps(slotStart, slotEnd, booking.start_time, booking.end_time)
       );
 
-      const isBlocked = blocked.some(b =>
-        b.start_time && b.end_time && timeOverlaps(slotStart, slotEnd, b.start_time, b.end_time)
+      const blockedConflict = blocked.find(
+        (blockedSlot) =>
+          blockedSlot.start_time &&
+          blockedSlot.end_time &&
+          timeOverlaps(slotStart, slotEnd, blockedSlot.start_time, blockedSlot.end_time)
       );
 
-      if (!isBooked && !isBlocked) {
-        slots.push({ start_time: slotStart, end_time: slotEnd });
-      }
+      slots.push({
+        start_time: slotStart,
+        end_time: slotEnd,
+        available: !bookingConflict && !blockedConflict,
+        reason: bookingConflict ? 'busy' : blockedConflict ? 'blocked' : null,
+      });
     }
 
-    return slots;
+    const availableSlots = slots.filter((slot) => slot.available);
+
+    return {
+      slots,
+      available_slots: availableSlots,
+      next_available_slots: availableSlots.slice(0, 3),
+    };
+  },
+
+  async getAvailableSlots(salonId, date, duration, staffId = null) {
+    const timeline = await this.getAvailabilityTimeline(salonId, date, duration, staffId);
+    return timeline.available_slots;
   },
 
   async findAll({ status, date, page = 1, limit = 20 }) {

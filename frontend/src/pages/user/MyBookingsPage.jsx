@@ -54,7 +54,7 @@ export default function MyBookingsPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-3xl">
-      <Card className="mb-6 border-primary/20 bg-gradient-to-r from-primary/10 via-background to-background">
+      <Card className="mb-6 border-primary/20 bg-linear-to-r from-primary/10 via-background to-background">
         <CardContent className="p-5">
           <h1 className="text-2xl font-bold">My Bookings</h1>
           <p className="text-sm text-muted-foreground">Track all appointment statuses in one place.</p>

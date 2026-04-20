@@ -1,14 +1,24 @@
 const Booking = require('../models/Booking');
 const Service = require('../models/Service');
 const Salon = require('../models/Salon');
+const Staff = require('../models/Staff');
 
 exports.create = async (req, res, next) => {
   try {
     const { salon_id, service_id, staff_id, booking_date, start_time, notes } = req.body;
 
+    if (!staff_id) {
+      return res.status(400).json({ error: 'Staff selection is required.' });
+    }
+
     // Get service to calculate end time
     const service = await Service.findById(service_id);
     if (!service) return res.status(404).json({ error: 'Service not found.' });
+
+    const staff = await Staff.findById(staff_id);
+    if (!staff || staff.salon_id !== salon_id || !staff.is_active) {
+      return res.status(400).json({ error: 'Selected staff member is not available.' });
+    }
 
     // Calculate end time
     const [hours, minutes] = start_time.split(':').map(Number);
@@ -18,10 +28,14 @@ exports.create = async (req, res, next) => {
     const end_time = `${endHours}:${endMinutes}`;
 
     // Check slot availability
-    const availableSlots = await Booking.getAvailableSlots(salon_id, booking_date, service.duration);
-    const isAvailable = availableSlots.some(s => s.start_time === start_time);
+    const availability = await Booking.getAvailabilityTimeline(salon_id, booking_date, service.duration, staff_id);
+    const isAvailable = availability.slots.some((slot) => slot.start_time === start_time && slot.available);
     if (!isAvailable) {
-      return res.status(400).json({ error: 'Selected time slot is not available.' });
+      return res.status(400).json({
+        error: 'Selected time slot is not available.',
+        available_slots: availability.available_slots,
+        next_available_slots: availability.next_available_slots,
+      });
     }
 
     const booking = await Booking.create({
@@ -90,12 +104,17 @@ exports.cancel = async (req, res, next) => {
 exports.getAvailableSlots = async (req, res, next) => {
   try {
     const { salonId } = req.params;
-    const { date, duration } = req.query;
+    const { date, duration, staff_id } = req.query;
 
     if (!date) return res.status(400).json({ error: 'Date is required.' });
 
-    const slots = await Booking.getAvailableSlots(salonId, date, parseInt(duration) || 30);
-    res.json({ slots });
+    const timeline = await Booking.getAvailabilityTimeline(
+      salonId,
+      date,
+      parseInt(duration) || 30,
+      staff_id || null
+    );
+    res.json(timeline);
   } catch (err) {
     next(err);
   }

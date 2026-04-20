@@ -156,28 +156,30 @@ export default function RegisterPage() {
                 <div className="flex flex-col gap-2">
                   <Label>I am a</Label>
                   <div className="grid grid-cols-2 gap-2">
-                    <button
+                    <Button
+                      variant="outline"
                       type="button"
                       onClick={() => setForm({ ...form, role: 'user' })}
-                      className={`flex items-center gap-2 rounded-md border px-3 py-2 text-sm transition-colors ${
+                      className={`justify-start gap-2 ${
                         form.role === 'user'
                           ? 'border-primary bg-primary/10 text-primary font-medium'
                           : 'border-border bg-muted/40 text-muted-foreground hover:bg-muted'
                       }`}
                     >
                       <UserRound className="h-4 w-4 shrink-0" /> Customer
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                      variant="outline"
                       type="button"
                       onClick={() => setForm({ ...form, role: 'shopkeeper' })}
-                      className={`flex items-center gap-2 rounded-md border px-3 py-2 text-sm transition-colors ${
+                      className={`justify-start gap-2 ${
                         form.role === 'shopkeeper'
                           ? 'border-primary bg-primary/10 text-primary font-medium'
                           : 'border-border bg-muted/40 text-muted-foreground hover:bg-muted'
                       }`}
                     >
                       <Store className="h-4 w-4 shrink-0" /> Salon Owner
-                    </button>
+                    </Button>
                   </div>
                 </div>
 
@@ -274,29 +276,38 @@ export default function RegisterPage() {
               </div>
 
               {/* prev / next arrows */}
-              <button
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
                 onClick={prev}
                 aria-label="Previous image"
-                className="absolute left-3 top-1/2 z-20 -translate-y-1/2 rounded-full bg-black/30 p-1.5 text-white backdrop-blur-sm hover:bg-black/50 transition-colors"
+                className="absolute left-3 top-1/2 z-20 h-7 w-7 -translate-y-1/2 rounded-full bg-black/30 p-1.5 text-white backdrop-blur-sm hover:bg-black/50"
               >
                 <ChevronLeft className="h-4 w-4" />
-              </button>
-              <button
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
                 onClick={next}
                 aria-label="Next image"
-                className="absolute right-3 top-1/2 z-20 -translate-y-1/2 rounded-full bg-black/30 p-1.5 text-white backdrop-blur-sm hover:bg-black/50 transition-colors"
+                className="absolute right-3 top-1/2 z-20 h-7 w-7 -translate-y-1/2 rounded-full bg-black/30 p-1.5 text-white backdrop-blur-sm hover:bg-black/50"
               >
                 <ChevronRight className="h-4 w-4" />
-              </button>
+              </Button>
 
               {/* dot indicators */}
               <div className="absolute bottom-14 left-1/2 z-20 -translate-x-1/2 flex gap-1.5">
                 {SALON_SLIDES.map((_, i) => (
-                  <button
+                  <Button
                     key={i}
+                    type="button"
+                    variant="ghost"
+                    size="icon"
                     onClick={() => goTo(i)}
                     aria-label={`Go to slide ${i + 1}`}
-                    className={`h-1.5 rounded-full transition-all duration-300 ${
+                    className={`h-1.5 min-h-1.5 w-auto min-w-0 rounded-full p-0 transition-all duration-300 hover:bg-transparent ${
                       i === slide ? 'w-5 bg-white' : 'w-1.5 bg-white/40 hover:bg-white/70'
                     }`}
                   />

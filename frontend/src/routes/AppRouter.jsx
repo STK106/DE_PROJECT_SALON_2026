@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import ProtectedRoute from '@/components/common/ProtectedRoute';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -36,11 +36,15 @@ import AdminManageBookings from '@/pages/admin/ManageBookings';
 import Reports from '@/pages/admin/Reports';
 
 function PublicLayout({ children }) {
+  const location = useLocation();
+  const hideFooterRoutes = ['/login', '/register'];
+  const shouldHideFooter = hideFooterRoutes.includes(location.pathname);
+
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
       <main className="flex-1">{children}</main>
-      <Footer />
+      {!shouldHideFooter && <Footer />}
     </div>
   );
 }

@@ -41,7 +41,7 @@ export default function Reports() {
 
   return (
     <div className="space-y-6">
-      <Card className="border-primary/20 bg-gradient-to-r from-primary/10 via-background to-background">
+      <Card className="border-primary/20 bg-linear-to-r from-primary/10 via-background to-background">
         <CardContent className="p-5">
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <BarChart3 className="h-6 w-6" /> Reports Overview

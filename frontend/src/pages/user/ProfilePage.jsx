@@ -46,7 +46,7 @@ export default function ProfilePage() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
-      <Card className="mb-6 border-primary/20 bg-gradient-to-r from-primary/10 via-background to-background">
+      <Card className="mb-6 border-primary/20 bg-linear-to-r from-primary/10 via-background to-background">
         <CardContent className="p-5">
           <h1 className="text-2xl font-bold">My Profile</h1>
           <p className="text-sm text-muted-foreground">Manage your account information and contact details.</p>

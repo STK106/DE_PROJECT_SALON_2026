@@ -3,7 +3,7 @@ import { adminService } from '@/services/adminService';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Select } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Users, ShieldCheck, ShieldOff } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -11,7 +11,7 @@ import toast from 'react-hot-toast';
 export default function ManageUsers() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [role, setRole] = useState('');
+  const [role, setRole] = useState('all');
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
 
@@ -19,7 +19,7 @@ export default function ManageUsers() {
     setLoading(true);
     try {
       const params = { page, limit: 20 };
-      if (role) params.role = role;
+      if (role !== 'all') params.role = role;
       const res = await adminService.getUsers(params);
       setUsers(res.data.users);
       setTotal(res.data.total);
@@ -46,18 +46,23 @@ export default function ManageUsers() {
 
   return (
     <div className="space-y-6">
-      <Card className="border-primary/20 bg-gradient-to-r from-primary/10 via-background to-background">
+      <Card className="border-primary/20 bg-linear-to-r from-primary/10 via-background to-background">
         <CardContent className="p-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h1 className="text-2xl font-bold">Manage Users</h1>
               <p className="text-sm text-muted-foreground">Review user access and block abusive accounts quickly.</p>
             </div>
-            <Select value={role} onChange={(e) => { setRole(e.target.value); setPage(1); }} className="w-40">
-              <option value="">All Roles</option>
-              <option value="user">Users</option>
-              <option value="shopkeeper">Shopkeepers</option>
-              <option value="admin">Admins</option>
+            <Select value={role} onValueChange={(value) => { setRole(value); setPage(1); }}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="All Roles" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Roles</SelectItem>
+                <SelectItem value="user">Users</SelectItem>
+                <SelectItem value="shopkeeper">Shopkeepers</SelectItem>
+                <SelectItem value="admin">Admins</SelectItem>
+              </SelectContent>
             </Select>
           </div>
         </CardContent>

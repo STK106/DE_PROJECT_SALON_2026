@@ -1,43 +1,79 @@
-import { Scissors } from 'lucide-react';
+import { ArrowRight, Facebook, Instagram, Mail, MapPin, Phone, Twitter } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 
 export default function Footer() {
   return (
-    <footer className="border-t bg-gradient-to-b from-background to-muted/30">
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid gap-6 md:grid-cols-3 md:items-center">
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center space-x-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-                <Scissors className="h-4 w-4 text-primary" />
-              </div>
-              <span className="font-semibold">GlowBook</span>
-              <Badge variant="secondary">Trusted Salons</Badge>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Find nearby salons, compare services, and book instantly.
-            </p>
+    <footer className="border-t bg-[radial-gradient(circle_at_top,rgba(14,165,233,0.08),transparent_34%),linear-gradient(to_bottom,var(--background),hsl(var(--muted)/0.28))]">
+      <div className="container mx-auto px-4 py-12 sm:py-14 lg:py-16">
+        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
+
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-foreground/80">Explore</h3>
+            <nav className="flex flex-col gap-3 text-sm text-muted-foreground">
+              <Link to="/" className="transition-colors hover:text-foreground">Home</Link>
+              <Link to="/register" className="transition-colors hover:text-foreground">Create account</Link>
+              <Link to="/login" className="transition-colors hover:text-foreground">Sign in</Link>
+            </nav>
           </div>
 
-          <nav className="flex flex-wrap gap-5 text-sm text-muted-foreground md:justify-center">
-            <Link to="/" className="hover:text-foreground transition-colors">Home</Link>
-            <Link to="/login" className="hover:text-foreground transition-colors">Login</Link>
-            <Link to="/register" className="hover:text-foreground transition-colors">Register</Link>
-          </nav>
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-foreground/80">Support</h3>
+            <nav className="flex flex-col gap-3 text-sm text-muted-foreground">
+              <span className="flex items-center gap-2">
+                <Mail className="h-4 w-4 text-primary" />
+                support@glowbook.com
+              </span>
+              <span className="flex items-center gap-2">
+                <Phone className="h-4 w-4 text-primary" />
+                +1 (555) 012-2026
+              </span>
+              <span className="flex items-center gap-2">
+                <MapPin className="h-4 w-4 text-primary" />
+                24 Salon Avenue, Downtown
+              </span>
+            </nav>
+          </div>
 
-          <div className="md:justify-self-end">
-            <Button asChild variant="outline" size="sm">
-              <Link to="/register">Get Started</Link>
-            </Button>
+          <div className="space-y-4 md:col-span-2 lg:col-span-1">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-foreground/80">Newsletter</h3>
+            <p className="text-sm leading-6 text-muted-foreground">
+              Get style tips, booking updates, and salon offers in your inbox.
+            </p>
+            <form className="space-y-3" onSubmit={(event) => event.preventDefault()}>
+              <div className="flex gap-2">
+                <Input type="email" placeholder="Email address" aria-label="Email address" />
+                <Button type="submit" size="icon" aria-label="Subscribe to newsletter">
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </form>
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <a href="https://instagram.com" target="_blank" rel="noreferrer" className="rounded-full border p-2 transition-colors hover:border-primary hover:text-primary">
+                <Instagram className="h-4 w-4" />
+              </a>
+              <a href="https://facebook.com" target="_blank" rel="noreferrer" className="rounded-full border p-2 transition-colors hover:border-primary hover:text-primary">
+                <Facebook className="h-4 w-4" />
+              </a>
+              <a href="https://twitter.com" target="_blank" rel="noreferrer" className="rounded-full border p-2 transition-colors hover:border-primary hover:text-primary">
+                <Twitter className="h-4 w-4" />
+              </a>
+            </div>
           </div>
         </div>
-        <Separator className="my-6" />
-        <p className="text-center text-sm text-muted-foreground">
-          © {new Date().getFullYear()} GlowBook. All rights reserved.
-        </p>
+
+        <Separator className="my-8" />
+
+        <div className="flex flex-col gap-3 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+          <p>© {new Date().getFullYear()} GlowBook. All rights reserved.</p>
+          <div className="flex flex-wrap items-center gap-4">
+            <Link to="/" className="transition-colors hover:text-foreground">Privacy</Link>
+            <Link to="/" className="transition-colors hover:text-foreground">Terms</Link>
+            <Link to="/" className="transition-colors hover:text-foreground">Cookies</Link>
+          </div>
+        </div>
       </div>
     </footer>
   );

@@ -112,7 +112,7 @@ export default function SalonDetailsPage() {
         <ArrowLeft className="h-4 w-4 mr-2" /> Back
       </Button>
 
-      <Card className="mb-6 border-primary/20 bg-gradient-to-r from-primary/10 via-background to-background">
+      <Card className="mb-6 border-primary/20 bg-linear-to-r from-primary/10 via-background to-background">
         <CardContent className="p-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>

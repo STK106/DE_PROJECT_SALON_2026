@@ -1,0 +1,11 @@
+{
+  "name": "de-project-salon-2026",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "concurrently -n backend,frontend -c blue,green \"bun run --cwd backend dev\" \"bun run --cwd frontend dev\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

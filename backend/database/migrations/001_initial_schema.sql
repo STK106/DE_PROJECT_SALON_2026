@@ -1,4 +1,4 @@
--- Salon booking system database schema
+-- Initial salon booking schema migration
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 

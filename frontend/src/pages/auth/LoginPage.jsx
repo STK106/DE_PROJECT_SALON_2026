@@ -207,29 +207,38 @@ export default function LoginPage() {
               </div>
 
               {/* prev / next arrows */}
-              <button
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
                 onClick={prev}
                 aria-label="Previous image"
-                className="absolute left-3 top-1/2 z-20 -translate-y-1/2 rounded-full bg-black/30 p-1.5 text-white backdrop-blur-sm hover:bg-black/50 transition-colors"
+                className="absolute left-3 top-1/2 z-20 h-7 w-7 -translate-y-1/2 rounded-full bg-black/30 p-1.5 text-white backdrop-blur-sm hover:bg-black/50"
               >
                 <ChevronLeft className="h-4 w-4" />
-              </button>
-              <button
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
                 onClick={next}
                 aria-label="Next image"
-                className="absolute right-3 top-1/2 z-20 -translate-y-1/2 rounded-full bg-black/30 p-1.5 text-white backdrop-blur-sm hover:bg-black/50 transition-colors"
+                className="absolute right-3 top-1/2 z-20 h-7 w-7 -translate-y-1/2 rounded-full bg-black/30 p-1.5 text-white backdrop-blur-sm hover:bg-black/50"
               >
                 <ChevronRight className="h-4 w-4" />
-              </button>
+              </Button>
 
               {/* dot indicators */}
               <div className="absolute bottom-14 left-1/2 z-20 -translate-x-1/2 flex gap-1.5">
                 {SALON_SLIDES.map((_, i) => (
-                  <button
+                  <Button
                     key={i}
+                    type="button"
+                    variant="ghost"
+                    size="icon"
                     onClick={() => goTo(i)}
                     aria-label={`Go to slide ${i + 1}`}
-                    className={`h-1.5 rounded-full transition-all duration-300 ${
+                    className={`h-1.5 min-h-1.5 w-auto min-w-0 rounded-full p-0 transition-all duration-300 hover:bg-transparent ${
                       i === slide ? 'w-5 bg-white' : 'w-1.5 bg-white/40 hover:bg-white/70'
                     }`}
                   />

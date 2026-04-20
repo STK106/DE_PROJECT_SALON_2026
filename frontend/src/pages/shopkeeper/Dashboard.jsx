@@ -1,21 +1,24 @@
 import { useState, useEffect } from 'react';
 import { salonService } from '@/services/salonService';
-import StatsCard from '@/components/common/StatsCard';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Calendar, CalendarCheck, Clock, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
+import DashboardOverview from '@/components/common/DashboardOverview';
+import { bookingService } from '@/services/bookingService';
 
 export default function ShopkeeperDashboard() {
   const [stats, setStats] = useState(null);
+  const [recentBookings, setRecentBookings] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await salonService.getStats();
-        setStats(res.data.stats);
+        const [statsResponse, bookingsResponse] = await Promise.all([
+          salonService.getStats(),
+          bookingService.getSalonBookings({ limit: 5 }),
+        ]);
+        setStats(statsResponse.data.stats);
+        setRecentBookings(bookingsResponse.data.bookings);
       } catch {
         toast.error('Failed to load dashboard stats');
       } finally {
@@ -25,66 +28,63 @@ export default function ShopkeeperDashboard() {
     fetchStats();
   }, []);
 
-  if (loading) {
+  const dashboardStats = stats
+    ? [
+        { title: 'Total Bookings', value: stats.total_bookings, icon: Calendar, description: 'All-time requests' },
+        { title: "Today's Bookings", value: stats.today_bookings, icon: CalendarCheck, description: 'Scheduled today' },
+        { title: 'Pending', value: stats.pending_bookings, icon: Clock, description: 'Need action' },
+        { title: 'Completed', value: stats.completed_bookings, icon: CheckCircle, description: 'Finished visits' },
+      ]
+    : [];
+
+  const focusCards = stats
+    ? [
+        {
+          title: 'Pending bookings',
+          value: stats.pending_bookings,
+          note: 'Requests still waiting for your response.',
+          icon: Clock,
+          accentClassName: 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300',
+        },
+        {
+          title: 'Completed bookings',
+          value: stats.completed_bookings,
+          note: 'Jobs marked complete for this salon.',
+          icon: CheckCircle,
+          accentClassName: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300',
+        },
+        {
+          title: "Today's bookings",
+          value: stats.today_bookings,
+          note: 'Sessions scheduled for today.',
+          icon: CalendarCheck,
+          accentClassName: 'bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300',
+        },
+      ]
+    : [];
+
+  if (!loading && !stats) {
     return (
-      <div className="space-y-6">
-        <h1 className="text-2xl font-bold">Dashboard</h1>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => (
-            <Skeleton key={i} className="h-32 w-full rounded-lg" />
-          ))}
-        </div>
+      <div className="rounded-lg border bg-card py-16 text-center">
+        <h3 className="mb-2 text-lg font-semibold">No salon found</h3>
+        <p className="text-muted-foreground">Create your salon profile to get started.</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <Card className="border-primary/20 bg-gradient-to-r from-primary/10 via-background to-background">
-        <CardContent className="p-5">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h1 className="text-2xl font-bold">Shopkeeper Dashboard</h1>
-              <p className="text-sm text-muted-foreground">Track bookings and keep daily operations smooth.</p>
-            </div>
-            <Badge variant="secondary">Live overview</Badge>
-          </div>
-        </CardContent>
-      </Card>
-
-      {stats ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatsCard
-            title="Total Bookings"
-            value={stats.total_bookings}
-            icon={Calendar}
-            description="All-time requests"
-          />
-          <StatsCard
-            title="Today's Bookings"
-            value={stats.today_bookings}
-            icon={CalendarCheck}
-            description="Scheduled today"
-          />
-          <StatsCard
-            title="Pending"
-            value={stats.pending_bookings}
-            icon={Clock}
-            description="Need action"
-          />
-          <StatsCard
-            title="Completed"
-            value={stats.completed_bookings}
-            icon={CheckCircle}
-            description="Finished visits"
-          />
-        </div>
-      ) : (
-        <div className="text-center py-16 border rounded-lg">
-          <h3 className="text-lg font-semibold mb-2">No salon found</h3>
-          <p className="text-muted-foreground">Create your salon profile to get started.</p>
-        </div>
-      )}
-    </div>
+    <DashboardOverview
+      title="Shopkeeper Dashboard"
+      description="Track bookings, keep the queue moving, and stay on top of today’s salon flow."
+      badgeLabel="Live overview"
+      actionLabel="Open bookings"
+      actionTo="/shopkeeper/bookings"
+      stats={dashboardStats}
+      focusCards={focusCards}
+      recentBookings={recentBookings}
+      loading={loading}
+      emptyStateTitle="No bookings waiting"
+      emptyStateDescription="Your latest bookings will appear here once customers start scheduling appointments."
+    />
   );
 }

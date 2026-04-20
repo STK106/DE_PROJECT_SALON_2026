@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { serviceService } from '@/services/salonService';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,13 +9,14 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Separator } from '@/components/ui/separator';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Plus, Pencil, Trash2, Scissors, MoreHorizontal } from 'lucide-react';
+import { Plus, Pencil, Trash2, Scissors, MoreHorizontal, Clock3, CircleDollarSign } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const emptyForm = { name: '', description: '', price: '', duration: '30', category: '' };
@@ -92,22 +93,36 @@ export default function ManageServices() {
   };
 
   return (
-    <div className="space-y-6">
-      <Card className="border-primary/20 bg-gradient-to-r from-primary/10 via-background to-background">
-        <CardContent className="p-5">
+    <div className="mx-auto max-w-6xl space-y-6">
+      <Card className="border-primary/20">
+        <CardHeader className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h1 className="text-2xl font-bold">Manage Services</h1>
-              <p className="text-sm text-muted-foreground">Define your catalog, pricing, and duration clearly.</p>
+              <CardTitle className="text-2xl font-semibold tracking-tight">Manage Services</CardTitle>
+              <CardDescription className="mt-1">
+                Keep your service catalog clear so customers can compare duration and pricing quickly.
+              </CardDescription>
             </div>
             <Button onClick={() => handleOpen()}>
-              <Plus className="h-4 w-4 mr-2" /> Add Service
+              <Plus className="mr-2 h-4 w-4" />
+              Add Service
             </Button>
           </div>
-        </CardContent>
+
+          <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+            <Badge variant="secondary">Catalog management</Badge>
+            <Badge variant="secondary">Pricing control</Badge>
+            <Badge variant="secondary">Duration planning</Badge>
+            {!loading && <Badge variant="outline">{services.length} total services</Badge>}
+          </div>
+        </CardHeader>
       </Card>
 
       <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Service List</CardTitle>
+          <CardDescription>Edit, activate, or remove services from your booking catalog.</CardDescription>
+        </CardHeader>
         <CardContent className="p-0">
           {loading ? (
             <div className="space-y-2 p-4">
@@ -122,7 +137,7 @@ export default function ManageServices() {
               ))}
             </div>
           ) : services.length === 0 ? (
-            <div className="p-8 text-center">
+            <div className="p-10 text-center">
               <Scissors className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
               <p className="text-muted-foreground">No services yet. Add your first service.</p>
             </div>
@@ -131,6 +146,7 @@ export default function ManageServices() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
+                  <TableHead>Description</TableHead>
                   <TableHead>Category</TableHead>
                   <TableHead>Price</TableHead>
                   <TableHead>Duration</TableHead>
@@ -142,9 +158,22 @@ export default function ManageServices() {
                 {services.map((svc) => (
                   <TableRow key={svc.id}>
                     <TableCell className="font-medium">{svc.name}</TableCell>
+                    <TableCell className="max-w-70 truncate text-muted-foreground">
+                      {svc.description || '-'}
+                    </TableCell>
                     <TableCell>{svc.category || '-'}</TableCell>
-                    <TableCell>₹{Number(svc.price).toFixed(0)}</TableCell>
-                    <TableCell>{svc.duration} min</TableCell>
+                    <TableCell>
+                      <span className="inline-flex items-center gap-1">
+                        <CircleDollarSign className="h-3.5 w-3.5 text-muted-foreground" />
+                        ₹{Number(svc.price).toFixed(0)}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="inline-flex items-center gap-1">
+                        <Clock3 className="h-3.5 w-3.5 text-muted-foreground" />
+                        {svc.duration} min
+                      </span>
+                    </TableCell>
                     <TableCell>
                       <Badge variant={svc.is_active ? 'success' : 'secondary'}>
                         {svc.is_active ? 'Active' : 'Inactive'}
@@ -173,38 +202,81 @@ export default function ManageServices() {
         </CardContent>
       </Card>
 
-      {/* Add/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent onClose={() => setDialogOpen(false)}>
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>{editing ? 'Edit Service' : 'Add Service'}</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-            <div className="space-y-2">
-              <Label>Service Name *</Label>
-              <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-            </div>
-            <div className="space-y-2">
-              <Label>Description</Label>
-              <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
+          <form onSubmit={handleSubmit} className="mt-4 space-y-5">
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold">Service profile</h3>
               <div className="space-y-2">
-                <Label>Price (₹) *</Label>
-                <Input type="number" min="0" step="0.01" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} />
+                <Label htmlFor="service-name">Service Name *</Label>
+                <Input
+                  id="service-name"
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  placeholder="Classic Haircut"
+                />
               </div>
               <div className="space-y-2">
-                <Label>Duration (min)</Label>
-                <Input type="number" min="5" value={form.duration} onChange={(e) => setForm({ ...form, duration: e.target.value })} />
+                <Label htmlFor="service-description">Description</Label>
+                <Textarea
+                  id="service-description"
+                  value={form.description}
+                  onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  placeholder="Explain what is included in this service."
+                  className="min-h-24"
+                />
               </div>
             </div>
-            <div className="space-y-2">
-              <Label>Category</Label>
-              <Input value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} placeholder="e.g. Haircut, Facial, Spa" />
+
+            <Separator />
+
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold">Pricing & timing</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="service-price">Price (Rs.) *</Label>
+                  <Input
+                    id="service-price"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={form.price}
+                    onChange={(e) => setForm({ ...form, price: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="service-duration">Duration (min)</Label>
+                  <Input
+                    id="service-duration"
+                    type="number"
+                    min="5"
+                    value={form.duration}
+                    onChange={(e) => setForm({ ...form, duration: e.target.value })}
+                  />
+                </div>
+              </div>
             </div>
-            <div className="flex gap-2 justify-end">
-              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-              <Button type="submit" disabled={saving}>{saving ? 'Saving...' : 'Save'}</Button>
+
+            <div className="space-y-2">
+              <Label htmlFor="service-category">Category</Label>
+              <Input
+                id="service-category"
+                value={form.category}
+                onChange={(e) => setForm({ ...form, category: e.target.value })}
+                placeholder="e.g. Haircut, Facial, Spa"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={saving}>
+                {saving ? 'Saving...' : editing ? 'Update Service' : 'Create Service'}
+              </Button>
             </div>
           </form>
         </DialogContent>

@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Select } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Calendar, Check, X, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -20,7 +20,7 @@ const statusVariant = {
 export default function ManageBookings() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [status, setStatus] = useState('');
+  const [status, setStatus] = useState('all');
   const [date, setDate] = useState('');
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -29,7 +29,7 @@ export default function ManageBookings() {
     setLoading(true);
     try {
       const params = { page, limit: 15 };
-      if (status) params.status = status;
+      if (status !== 'all') params.status = status;
       if (date) params.date = date;
       const res = await bookingService.getSalonBookings(params);
       setBookings(res.data.bookings);
@@ -54,7 +54,7 @@ export default function ManageBookings() {
       )));
 
       // If current filter no longer matches this row, refetch list to keep table accurate.
-      if (status && status !== newStatus) {
+      if (status !== 'all' && status !== newStatus) {
         fetchBookings();
       }
     } catch (err) {
@@ -66,7 +66,7 @@ export default function ManageBookings() {
 
   return (
     <div className="space-y-6">
-      <Card className="border-primary/20 bg-gradient-to-r from-primary/10 via-background to-background">
+      <Card className="border-primary/20 bg-linear-to-r from-primary/10 via-background to-background">
         <CardContent className="p-5">
           <h1 className="text-2xl font-bold">Manage Bookings</h1>
           <p className="text-sm text-muted-foreground">Accept, reject, and complete bookings from one queue.</p>
@@ -75,17 +75,22 @@ export default function ManageBookings() {
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3">
-        <Select value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }} className="w-40">
-          <option value="">All Status</option>
-          <option value="pending">Pending</option>
-          <option value="confirmed">Confirmed</option>
-          <option value="completed">Completed</option>
-          <option value="cancelled">Cancelled</option>
-          <option value="rejected">Rejected</option>
+        <Select value={status} onValueChange={(value) => { setStatus(value); setPage(1); }}>
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="All Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="pending">Pending</SelectItem>
+            <SelectItem value="confirmed">Confirmed</SelectItem>
+            <SelectItem value="completed">Completed</SelectItem>
+            <SelectItem value="cancelled">Cancelled</SelectItem>
+            <SelectItem value="rejected">Rejected</SelectItem>
+          </SelectContent>
         </Select>
         <Input type="date" value={date} onChange={(e) => { setDate(e.target.value); setPage(1); }} className="w-44" />
-        {(status || date) && (
-          <Button variant="ghost" onClick={() => { setStatus(''); setDate(''); setPage(1); }}>Clear</Button>
+        {(status !== 'all' || date) && (
+          <Button variant="ghost" onClick={() => { setStatus('all'); setDate(''); setPage(1); }}>Clear</Button>
         )}
       </div>
 

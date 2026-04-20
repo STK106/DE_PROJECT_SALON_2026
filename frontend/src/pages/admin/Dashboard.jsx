@@ -1,21 +1,23 @@
 import { useState, useEffect } from 'react';
 import { adminService } from '@/services/adminService';
-import StatsCard from '@/components/common/StatsCard';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Users, Store, Calendar, Clock, CalendarCheck, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
+import DashboardOverview from '@/components/common/DashboardOverview';
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState(null);
+  const [recentBookings, setRecentBookings] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await adminService.getDashboard();
-        setStats(res.data.stats);
+        const [dashboardResponse, bookingsResponse] = await Promise.all([
+          adminService.getDashboard(),
+          adminService.getBookings({ limit: 5 }),
+        ]);
+        setStats(dashboardResponse.data.stats);
+        setRecentBookings(bookingsResponse.data.bookings);
       } catch {
         toast.error('Failed to load dashboard');
       } finally {
@@ -25,43 +27,56 @@ export default function AdminDashboard() {
     fetchStats();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <h1 className="text-2xl font-bold">Admin Dashboard</h1>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[...Array(6)].map((_, i) => (
-            <Skeleton key={i} className="h-32 w-full rounded-lg" />
-          ))}
-        </div>
-      </div>
-    );
-  }
+  const dashboardStats = stats
+    ? [
+        { title: 'Total Users', value: stats.total_users, icon: Users, description: 'Registered accounts' },
+        { title: 'Total Salons', value: stats.total_salons, icon: Store, description: 'Onboarded businesses' },
+        { title: 'Total Bookings', value: stats.total_bookings, icon: Calendar, description: 'All recorded orders' },
+        { title: "Today's Bookings", value: stats.today_bookings, icon: CalendarCheck, description: 'Today\'s demand' },
+        { title: 'Pending Bookings', value: stats.pending_bookings, icon: Clock, description: 'Awaiting updates' },
+        { title: 'Pending Salons', value: stats.pending_salons, icon: AlertCircle, description: 'Awaiting approval' },
+      ]
+    : [];
+
+  const focusCards = stats
+    ? [
+        {
+          title: 'Pending bookings',
+          value: stats.pending_bookings,
+          note: 'Items waiting for review across the platform.',
+          icon: Clock,
+          accentClassName: 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300',
+        },
+        {
+          title: 'Salon approvals',
+          value: stats.pending_salons,
+          note: 'New salons that still need an admin decision.',
+          icon: Store,
+          accentClassName: 'bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300',
+        },
+        {
+          title: "Today's activity",
+          value: stats.today_bookings,
+          note: 'Bookings received so far today.',
+          icon: CalendarCheck,
+          accentClassName: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300',
+        },
+      ]
+    : [];
 
   return (
-    <div className="space-y-6">
-      <Card className="border-primary/20 bg-gradient-to-r from-primary/10 via-background to-background">
-        <CardContent className="p-5">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h1 className="text-2xl font-bold">Admin Dashboard</h1>
-              <p className="text-sm text-muted-foreground">Monitor platform growth, demand, and approvals.</p>
-            </div>
-            <Badge variant="secondary">System health</Badge>
-          </div>
-        </CardContent>
-      </Card>
-
-      {stats && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <StatsCard title="Total Users" value={stats.total_users} icon={Users} description="Registered accounts" />
-          <StatsCard title="Total Salons" value={stats.total_salons} icon={Store} description="Onboarded businesses" />
-          <StatsCard title="Total Bookings" value={stats.total_bookings} icon={Calendar} description="All recorded orders" />
-          <StatsCard title="Today's Bookings" value={stats.today_bookings} icon={CalendarCheck} description="Today's demand" />
-          <StatsCard title="Pending Bookings" value={stats.pending_bookings} icon={Clock} description="Awaiting updates" />
-          <StatsCard title="Pending Salons" value={stats.pending_salons} icon={AlertCircle} description="Awaiting approval" />
-        </div>
-      )}
-    </div>
+    <DashboardOverview
+      title="Admin Dashboard"
+      description="Monitor platform growth, demand, and approvals from a single command center."
+      badgeLabel="System health"
+      actionLabel="View bookings"
+      actionTo="/admin/bookings"
+      stats={dashboardStats}
+      focusCards={focusCards}
+      recentBookings={recentBookings}
+      loading={loading}
+      emptyStateTitle="No booking activity yet"
+      emptyStateDescription="Bookings will appear here once customers start scheduling sessions."
+    />
   );
 }

@@ -3,6 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import ModeToggle from '@/components/mode-toggle';
 import {
   LayoutDashboard, Store, Scissors, Users, Calendar, Clock,
   ChevronLeft, ChevronRight, LogOut, Shield, BarChart3, UserCheck
@@ -105,7 +106,10 @@ export default function DashboardLayout({ type = 'shopkeeper' }) {
             <p className="text-sm text-muted-foreground">
               {type === 'admin' ? 'Platform administration' : 'Salon operations'}
             </p>
-            <Badge variant="secondary" className="capitalize">{type}</Badge>
+            <div className="flex items-center gap-3">
+              <ModeToggle />
+              <Badge variant="secondary" className="capitalize">{type}</Badge>
+            </div>
           </div>
         </div>
         <div className="p-6">
