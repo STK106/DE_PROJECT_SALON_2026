@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,10 +19,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Plus, Pencil, Trash2, Scissors, MoreHorizontal, Clock3, CircleDollarSign } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useShopkeeperSalons } from '@/hooks/useShopkeeperSalons';
 
 const emptyForm = { name: '', description: '', price: '', duration: '30', category: '' };
 
 export default function ManageServices() {
+  const { salons, selectedSalonId, setSelectedSalonId, loadingSalons } = useShopkeeperSalons();
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -30,8 +33,14 @@ export default function ManageServices() {
   const [saving, setSaving] = useState(false);
 
   const fetchServices = async () => {
+    if (!selectedSalonId) {
+      setServices([]);
+      setLoading(false);
+      return;
+    }
+
     try {
-      const res = await serviceService.getMyServices();
+      const res = await serviceService.getMyServices(selectedSalonId);
       setServices(res.data.services);
     } catch {
       toast.error('Failed to load services');
@@ -40,7 +49,11 @@ export default function ManageServices() {
     }
   };
 
-  useEffect(() => { fetchServices(); }, []);
+  useEffect(() => {
+    if (!loadingSalons) {
+      fetchServices();
+    }
+  }, [selectedSalonId, loadingSalons]);
 
   const handleOpen = (service = null) => {
     if (service) {
@@ -70,7 +83,7 @@ export default function ManageServices() {
         await serviceService.update(editing, { ...form, price: parseFloat(form.price), duration: parseInt(form.duration) });
         toast.success('Service updated');
       } else {
-        await serviceService.create({ ...form, price: parseFloat(form.price), duration: parseInt(form.duration) });
+        await serviceService.create({ ...form, price: parseFloat(form.price), duration: parseInt(form.duration) }, selectedSalonId);
         toast.success('Service added');
       }
       setDialogOpen(false);
@@ -103,10 +116,24 @@ export default function ManageServices() {
                 Keep your service catalog clear so customers can compare duration and pricing quickly.
               </CardDescription>
             </div>
-            <Button onClick={() => handleOpen()}>
+            <Button onClick={() => handleOpen()} disabled={!selectedSalonId}>
               <Plus className="mr-2 h-4 w-4" />
               Add Service
             </Button>
+          </div>
+
+          <div className="max-w-xs">
+            <Label className="mb-2 block">Salon</Label>
+            <Select value={selectedSalonId || undefined} onValueChange={setSelectedSalonId} disabled={loadingSalons || salons.length === 0}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select salon" />
+              </SelectTrigger>
+              <SelectContent>
+                {salons.map((item) => (
+                  <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
@@ -135,6 +162,10 @@ export default function ManageServices() {
                   <Skeleton className="h-8" />
                 </div>
               ))}
+            </div>
+          ) : !selectedSalonId ? (
+            <div className="p-10 text-center">
+              <p className="text-muted-foreground">Create a salon first to manage services.</p>
             </div>
           ) : services.length === 0 ? (
             <div className="p-10 text-center">

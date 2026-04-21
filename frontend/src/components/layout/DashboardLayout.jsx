@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import ModeToggle from '@/components/mode-toggle';
 import {
   LayoutDashboard, Store, Scissors, Users, Calendar, Clock,
-  ChevronLeft, ChevronRight, LogOut, Shield, BarChart3, UserCheck
+  ChevronLeft, ChevronRight, LogOut, Shield, BarChart3, UserCheck, Package
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -15,6 +15,8 @@ const shopkeeperLinks = [
   { to: '/shopkeeper/salon', icon: Store, label: 'My Salon' },
   { to: '/shopkeeper/services', icon: Scissors, label: 'Services' },
   { to: '/shopkeeper/staff', icon: Users, label: 'Staff' },
+  { to: '/shopkeeper/products', icon: Package, label: 'Products' },
+  { to: '/shopkeeper/product-orders', icon: Calendar, label: 'Product Orders' },
   { to: '/shopkeeper/bookings', icon: Calendar, label: 'Bookings' },
   { to: '/shopkeeper/availability', icon: Clock, label: 'Availability' },
 ];

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { salonService, serviceService, staffService } from '@/services/salonService';
+import { salonService, serviceService, staffService, productService } from '@/services/salonService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,7 +9,15 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { MapPin, Clock, Star, Phone, Mail, Scissors, Users, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { resolveMediaUrl } from '@/lib/media';
+import { addToCart } from '@/lib/cart';
 import toast from 'react-hot-toast';
+
+function getProductImages(product) {
+  if (Array.isArray(product?.image_urls) && product.image_urls.length > 0) {
+    return product.image_urls;
+  }
+  return product?.image_url ? [product.image_url] : [];
+}
 
 export default function SalonDetailsPage() {
   const { id } = useParams();
@@ -18,24 +26,29 @@ export default function SalonDetailsPage() {
   const [salon, setSalon] = useState(null);
   const [services, setServices] = useState([]);
   const [staff, setStaff] = useState([]);
+  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [ratingValue, setRatingValue] = useState(0);
+  const [productRatingValues, setProductRatingValues] = useState({});
   const [ratingSubmitting, setRatingSubmitting] = useState(false);
+  const [productRatingSubmitting, setProductRatingSubmitting] = useState({});
 
   useEffect(() => {
     let mounted = true;
     const fetchData = async () => {
       try {
-        const [salonRes, servicesRes, staffRes] = await Promise.all([
+        const [salonRes, servicesRes, staffRes, productsRes] = await Promise.all([
           salonService.getById(id),
           serviceService.getBySalon(id),
           staffService.getBySalon(id),
+          productService.getBySalon(id),
         ]);
         if (mounted) {
           setSalon(salonRes.data.salon);
           setServices(servicesRes.data.services);
           setStaff(staffRes.data.staff);
+          setProducts(productsRes.data.products || []);
           setCurrentImageIndex(0);
         }
       } catch (err) {
@@ -104,6 +117,32 @@ export default function SalonDetailsPage() {
     } finally {
       setRatingSubmitting(false);
     }
+  };
+
+  const submitProductRating = async (productId) => {
+    const rating = productRatingValues[productId];
+    if (!rating) {
+      toast.error('Select a rating first');
+      return;
+    }
+
+    try {
+      setProductRatingSubmitting((current) => ({ ...current, [productId]: true }));
+      const res = await productService.rateProduct(productId, rating);
+      setProducts((current) => current.map((item) => (
+        item.id === productId ? res.data.product : item
+      )));
+      toast.success(res.data.message || 'Product rating submitted');
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to rate product');
+    } finally {
+      setProductRatingSubmitting((current) => ({ ...current, [productId]: false }));
+    }
+  };
+
+  const handleAddToCart = (product) => {
+    addToCart({ salonId: salon.id, salonName: salon.name, product });
+    toast.success(`${product.name} added to cart`);
   };
 
   return (
@@ -235,6 +274,93 @@ export default function SalonDetailsPage() {
                       ))}
                     </div>
                   </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Products */}
+          <Separator />
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Products</h2>
+            {products.length === 0 ? (
+              <p className="text-muted-foreground">No products available</p>
+            ) : (
+              <div className="space-y-3">
+                {products.map((product) => (
+                  <Card key={product.id}>
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex items-start gap-3">
+                          {getProductImages(product).length > 0 ? (
+                            <div className="flex flex-wrap gap-2">
+                              {getProductImages(product).map((image, index) => (
+                                <img
+                                  key={`${product.id}-${index}`}
+                                  src={resolveMediaUrl(image)}
+                                  alt={`${product.name} ${index + 1}`}
+                                  className="h-16 w-16 rounded-md border object-cover"
+                                />
+                              ))}
+                            </div>
+                          ) : null}
+                          <div>
+                          <p className="font-medium">{product.name}</p>
+                          {product.description && <p className="text-sm text-muted-foreground">{product.description}</p>}
+                          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                            <span>{product.category || 'General'}</span>
+                            <span>•</span>
+                            <span>Stock: {product.stock}</span>
+                            <span>•</span>
+                            <span className="inline-flex items-center gap-1">
+                              <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+                              {Number(product.rating || 0).toFixed(1)} ({product.total_ratings || 0})
+                            </span>
+                          </div>
+                          </div>
+                        </div>
+                        <p className="font-semibold">₹{Number(product.price).toFixed(0)}</p>
+                      </div>
+
+                      {user?.role === 'user' && (
+                        <div className="mt-3 border-t pt-3">
+                          <div className="mb-3 flex gap-2">
+                            <Button size="sm" variant="outline" onClick={() => handleAddToCart(product)}>
+                              Add to Cart
+                            </Button>
+                            <Button size="sm" onClick={() => { handleAddToCart(product); navigate('/cart'); }}>
+                              Buy Now
+                            </Button>
+                          </div>
+                          <p className="mb-2 text-sm font-medium">Rate this product</p>
+                          <div className="flex items-center gap-1 mb-2">
+                            {[1, 2, 3, 4, 5].map((value) => (
+                              <Button
+                                key={`${product.id}-${value}`}
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setProductRatingValues((current) => ({ ...current, [product.id]: value }))}
+                                className="p-1"
+                                aria-label={`Rate ${value} star`}
+                              >
+                                <Star
+                                  className={`h-5 w-5 ${value <= (productRatingValues[product.id] || 0) ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground'}`}
+                                />
+                              </Button>
+                            ))}
+                          </div>
+                          <Button
+                            size="sm"
+                            onClick={() => submitProductRating(product.id)}
+                            disabled={Boolean(productRatingSubmitting[product.id]) || !(productRatingValues[product.id] > 0)}
+                          >
+                            {productRatingSubmitting[product.id] ? 'Submitting...' : 'Submit Product Rating'}
+                          </Button>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
                 ))}
               </div>
             )}

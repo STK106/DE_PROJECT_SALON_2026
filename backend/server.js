@@ -9,9 +9,11 @@ const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
 const salonRoutes = require('./routes/salons');
 const serviceRoutes = require('./routes/services');
+const productRoutes = require('./routes/products');
 const bookingRoutes = require('./routes/bookings');
 const staffRoutes = require('./routes/staff');
 const adminRoutes = require('./routes/admin');
+const productOrderRoutes = require('./routes/productOrders');
 
 const app = express();
 
@@ -58,9 +60,11 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/salons', salonRoutes);
 app.use('/api/services', serviceRoutes);
+app.use('/api/products', productRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/staff', staffRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/product-orders', productOrderRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

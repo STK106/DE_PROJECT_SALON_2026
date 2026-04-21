@@ -18,6 +18,11 @@ const BlockedSlot = {
     return result.rows;
   },
 
+  async findById(id) {
+    const result = await query('SELECT * FROM blocked_slots WHERE id = $1 LIMIT 1', [id]);
+    return result.rows[0];
+  },
+
   async delete(id) {
     const result = await query('DELETE FROM blocked_slots WHERE id = $1 RETURNING *', [id]);
     return result.rows[0];

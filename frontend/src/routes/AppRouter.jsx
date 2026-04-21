@@ -19,6 +19,9 @@ import SalonDetailsPage from '@/pages/user/SalonDetailsPage';
 import BookingPage from '@/pages/user/BookingPage';
 import MyBookingsPage from '@/pages/user/MyBookingsPage';
 import ProfilePage from '@/pages/user/ProfilePage';
+import CartPage from '@/pages/user/CartPage';
+import MyProductOrdersPage from '@/pages/user/MyProductOrdersPage';
+import ProductOrderDetailsPage from '@/pages/user/ProductOrderDetailsPage';
 
 // Shopkeeper Pages
 import ShopkeeperDashboard from '@/pages/shopkeeper/Dashboard';
@@ -27,6 +30,8 @@ import ManageServices from '@/pages/shopkeeper/ManageServices';
 import ManageStaff from '@/pages/shopkeeper/ManageStaff';
 import ManageBookings from '@/pages/shopkeeper/ManageBookings';
 import Availability from '@/pages/shopkeeper/Availability';
+import ManageProducts from '@/pages/shopkeeper/ManageProducts';
+import ManageProductOrders from '@/pages/shopkeeper/ManageProductOrders';
 
 // Admin Pages
 import AdminDashboard from '@/pages/admin/Dashboard';
@@ -70,6 +75,21 @@ export default function AppRouter() {
             <PublicLayout><MyBookingsPage /></PublicLayout>
           </ProtectedRoute>
         } />
+        <Route path="cart" element={
+          <ProtectedRoute roles={['user']}>
+            <PublicLayout><CartPage /></PublicLayout>
+          </ProtectedRoute>
+        } />
+        <Route path="my-product-orders" element={
+          <ProtectedRoute roles={['user']}>
+            <PublicLayout><MyProductOrdersPage /></PublicLayout>
+          </ProtectedRoute>
+        } />
+        <Route path="product-orders/:id" element={
+          <ProtectedRoute roles={['user', 'shopkeeper', 'admin']}>
+            <PublicLayout><ProductOrderDetailsPage /></PublicLayout>
+          </ProtectedRoute>
+        } />
         <Route path="/profile" element={
           <ProtectedRoute roles={['user', 'shopkeeper', 'admin']}>
             <PublicLayout><ProfilePage /></PublicLayout>
@@ -87,6 +107,8 @@ export default function AppRouter() {
           <Route path="salon" element={<ManageSalon />} />
           <Route path="services" element={<ManageServices />} />
           <Route path="staff" element={<ManageStaff />} />
+          <Route path="products" element={<ManageProducts />} />
+          <Route path="product-orders" element={<ManageProductOrders />} />
           <Route path="bookings" element={<ManageBookings />} />
           <Route path="availability" element={<Availability />} />
         </Route>

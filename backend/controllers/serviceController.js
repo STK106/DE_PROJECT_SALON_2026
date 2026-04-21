@@ -1,8 +1,20 @@
 const Service = require('../models/Service');
 const Salon = require('../models/Salon');
 
+async function getOwnedSalon(req, salonId) {
+  if (salonId) {
+    return Salon.findByOwnerAndId(req.user.id, salonId);
+  }
+  return Salon.findByOwner(req.user.id);
+}
+
 exports.getBySalon = async (req, res, next) => {
   try {
+    const salon = await Salon.findById(req.params.salonId);
+    if (!salon || !salon.is_approved || !salon.is_active) {
+      return res.status(404).json({ error: 'Salon not found.' });
+    }
+
     const services = await Service.findBySalon(req.params.salonId);
     res.json({ services });
   } catch (err) {
@@ -12,7 +24,7 @@ exports.getBySalon = async (req, res, next) => {
 
 exports.create = async (req, res, next) => {
   try {
-    const salon = await Salon.findByOwner(req.user.id);
+    const salon = await getOwnedSalon(req, req.body.salon_id || req.query.salon_id);
     if (!salon) return res.status(404).json({ error: 'Salon not found.' });
 
     const service = await Service.create({ ...req.body, salon_id: salon.id });
@@ -28,8 +40,8 @@ exports.update = async (req, res, next) => {
     if (!service) return res.status(404).json({ error: 'Service not found.' });
 
     // Verify ownership
-    const salon = await Salon.findByOwner(req.user.id);
-    if (!salon || salon.id !== service.salon_id) {
+    const salon = await Salon.findByOwnerAndId(req.user.id, service.salon_id);
+    if (!salon) {
       return res.status(403).json({ error: 'Not authorized.' });
     }
 
@@ -45,8 +57,8 @@ exports.delete = async (req, res, next) => {
     const service = await Service.findById(req.params.id);
     if (!service) return res.status(404).json({ error: 'Service not found.' });
 
-    const salon = await Salon.findByOwner(req.user.id);
-    if (!salon || salon.id !== service.salon_id) {
+    const salon = await Salon.findByOwnerAndId(req.user.id, service.salon_id);
+    if (!salon) {
       return res.status(403).json({ error: 'Not authorized.' });
     }
 
@@ -59,7 +71,7 @@ exports.delete = async (req, res, next) => {
 
 exports.getMyServices = async (req, res, next) => {
   try {
-    const salon = await Salon.findByOwner(req.user.id);
+    const salon = await getOwnedSalon(req, req.query.salon_id);
     if (!salon) return res.status(404).json({ error: 'Salon not found.' });
 
     const services = await Service.findBySalon(salon.id, false);

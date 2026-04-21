@@ -22,7 +22,23 @@ const Salon = {
   },
 
   async findByOwner(ownerId) {
-    const result = await query('SELECT * FROM salons WHERE owner_id = $1', [ownerId]);
+    const result = await query('SELECT * FROM salons WHERE owner_id = $1 ORDER BY created_at DESC', [ownerId]);
+    return result.rows[0];
+  },
+
+  async findAllByOwner(ownerId) {
+    const result = await query(
+      'SELECT * FROM salons WHERE owner_id = $1 ORDER BY created_at DESC',
+      [ownerId]
+    );
+    return result.rows;
+  },
+
+  async findByOwnerAndId(ownerId, salonId) {
+    const result = await query(
+      'SELECT * FROM salons WHERE owner_id = $1 AND id = $2 LIMIT 1',
+      [ownerId, salonId]
+    );
     return result.rows[0];
   },
 
@@ -142,30 +158,32 @@ const Salon = {
     return updated.rows[0];
   },
 
-  async getStats(ownerId) {
-    const salon = await query('SELECT id FROM salons WHERE owner_id = $1', [ownerId]);
+  async getStats(ownerId, salonId = null) {
+    const salon = salonId
+      ? await query('SELECT id FROM salons WHERE owner_id = $1 AND id = $2', [ownerId, salonId])
+      : await query('SELECT id FROM salons WHERE owner_id = $1 ORDER BY created_at DESC LIMIT 1', [ownerId]);
     if (!salon.rows[0]) return null;
-    const salonId = salon.rows[0].id;
+    const resolvedSalonId = salon.rows[0].id;
 
     const totalBookings = await query(
       'SELECT COUNT(*) FROM bookings WHERE salon_id = $1',
-      [salonId]
+      [resolvedSalonId]
     );
     const todayBookings = await query(
       'SELECT COUNT(*) FROM bookings WHERE salon_id = $1 AND booking_date = CURRENT_DATE',
-      [salonId]
+      [resolvedSalonId]
     );
     const pendingBookings = await query(
       `SELECT COUNT(*) FROM bookings WHERE salon_id = $1 AND status = 'pending'`,
-      [salonId]
+      [resolvedSalonId]
     );
     const completedBookings = await query(
       `SELECT COUNT(*) FROM bookings WHERE salon_id = $1 AND status = 'completed'`,
-      [salonId]
+      [resolvedSalonId]
     );
 
     return {
-      salon_id: salonId,
+      salon_id: resolvedSalonId,
       total_bookings: parseInt(totalBookings.rows[0].count),
       today_bookings: parseInt(todayBookings.rows[0].count),
       pending_bookings: parseInt(pendingBookings.rows[0].count),

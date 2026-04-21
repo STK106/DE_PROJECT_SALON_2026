@@ -16,6 +16,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   Store,
   Upload,
@@ -29,6 +30,7 @@ import {
 } from 'lucide-react';
 import { resolveMediaUrl } from '@/lib/media';
 import toast from 'react-hot-toast';
+import { useShopkeeperSalons } from '@/hooks/useShopkeeperSalons';
 
 const DEFAULT_WORKING_DAYS = 'Mon,Tue,Wed,Thu,Fri,Sat';
 const WEEK_DAYS = [
@@ -42,6 +44,13 @@ const WEEK_DAYS = [
 ];
 
 export default function ManageSalon() {
+  const {
+    salons,
+    selectedSalonId,
+    setSelectedSalonId,
+    loadingSalons,
+    refreshSalons,
+  } = useShopkeeperSalons();
   const [salon, setSalon] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -62,10 +71,20 @@ export default function ManageSalon() {
 
   useEffect(() => {
     const fetchSalon = async () => {
+      if (loadingSalons) return;
+
+      if (!selectedSalonId) {
+        setSalon(null);
+        setIsNew(true);
+        setLoading(false);
+        return;
+      }
+
       try {
-        const res = await salonService.getMySalon();
+        const res = await salonService.getMySalon(selectedSalonId);
         const currentSalon = res.data.salon;
         setSalon(currentSalon);
+        setIsNew(false);
         setForm({
           name: currentSalon.name || '',
           description: currentSalon.description || '',
@@ -86,7 +105,24 @@ export default function ManageSalon() {
     };
 
     fetchSalon();
-  }, []);
+  }, [selectedSalonId, loadingSalons]);
+
+  const startCreateNewSalon = () => {
+    setIsNew(true);
+    setSalon(null);
+    setForm({
+      name: '',
+      description: '',
+      address: '',
+      city: '',
+      state: '',
+      phone: '',
+      email: '',
+      opening_time: '09:00',
+      closing_time: '21:00',
+      working_days: DEFAULT_WORKING_DAYS,
+    });
+  };
 
   const selectedDays = new Set(
     form.working_days
@@ -128,11 +164,13 @@ export default function ManageSalon() {
     try {
       if (isNew) {
         const res = await salonService.create(form);
+        await refreshSalons(res.data.salon.id);
+        setSelectedSalonId(res.data.salon.id);
         setSalon(res.data.salon);
         setIsNew(false);
         toast.success('Salon created! Awaiting admin approval.');
       } else {
-        const res = await salonService.update(form);
+        const res = await salonService.update(form, selectedSalonId);
         setSalon(res.data.salon);
         toast.success('Salon updated');
       }
@@ -159,7 +197,7 @@ export default function ManageSalon() {
     }
 
     try {
-      const res = await salonService.uploadImages(formData);
+      const res = await salonService.uploadImages(formData, selectedSalonId);
       setSalon(res.data.salon);
       toast.success('Images uploaded');
     } catch {
@@ -169,7 +207,7 @@ export default function ManageSalon() {
 
   const handleDeleteImage = async (index) => {
     try {
-      const res = await salonService.deleteImage(index);
+      const res = await salonService.deleteImage(index, selectedSalonId);
       setSalon(res.data.salon);
       toast.success('Image deleted');
     } catch (err) {
@@ -214,6 +252,27 @@ export default function ManageSalon() {
                 )}
               </Badge>
             )}
+          </div>
+
+          <div className="flex flex-wrap items-end gap-3">
+            {salons.length > 0 && (
+              <div className="w-full max-w-xs">
+                <Label className="mb-2 block">Salon</Label>
+                <Select value={selectedSalonId || undefined} onValueChange={setSelectedSalonId} disabled={loadingSalons}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select salon" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {salons.map((item) => (
+                      <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            <Button type="button" variant="outline" onClick={startCreateNewSalon}>
+              Add Another Salon
+            </Button>
           </div>
 
           <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">

@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/hooks/useAuth';
 import ModeToggle from '@/components/mode-toggle';
-import { Scissors, Menu, X, LogOut, User, Calendar, LayoutDashboard } from 'lucide-react';
+import { Scissors, Menu, X, LogOut, User, Calendar, LayoutDashboard, ShoppingCart, Package } from 'lucide-react';
 import { useState } from 'react';
 
 export default function Navbar() {
@@ -47,9 +47,17 @@ export default function Navbar() {
           {user ? (
             <>
               {user.role === 'user' && (
-                <Link to="/my-bookings" className="text-sm font-medium hover:text-primary transition-colors">
-                  <span className="flex items-center gap-1"><Calendar className="h-4 w-4" /> My Bookings</span>
-                </Link>
+                <>
+                  <Link to="/my-bookings" className="text-sm font-medium hover:text-primary transition-colors">
+                    <span className="flex items-center gap-1"><Calendar className="h-4 w-4" /> My Bookings</span>
+                  </Link>
+                  <Link to="/my-product-orders" className="text-sm font-medium hover:text-primary transition-colors">
+                    <span className="flex items-center gap-1"><Package className="h-4 w-4" /> My Orders</span>
+                  </Link>
+                  <Link to="/cart" className="text-sm font-medium hover:text-primary transition-colors">
+                    <span className="flex items-center gap-1"><ShoppingCart className="h-4 w-4" /> Cart</span>
+                  </Link>
+                </>
               )}
               <Link to={getDashboardLink()} className="text-sm font-medium hover:text-primary transition-colors">
                 <span className="flex items-center gap-1"><LayoutDashboard className="h-4 w-4" /> Dashboard</span>
@@ -113,7 +121,11 @@ export default function Navbar() {
                 </div>
               </div>
               {user.role === 'user' && (
-                <Link to="/my-bookings" className="block text-sm font-medium py-2" onClick={() => setMobileOpen(false)}>My Bookings</Link>
+                <>
+                  <Link to="/my-bookings" className="block text-sm font-medium py-2" onClick={() => setMobileOpen(false)}>My Bookings</Link>
+                  <Link to="/my-product-orders" className="block text-sm font-medium py-2" onClick={() => setMobileOpen(false)}>My Orders</Link>
+                  <Link to="/cart" className="block text-sm font-medium py-2" onClick={() => setMobileOpen(false)}>Cart</Link>
+                </>
               )}
               <Link to={getDashboardLink()} className="block text-sm font-medium py-2" onClick={() => setMobileOpen(false)}>Dashboard</Link>
               <Link to="/profile" className="block text-sm font-medium py-2" onClick={() => setMobileOpen(false)}>Profile</Link>

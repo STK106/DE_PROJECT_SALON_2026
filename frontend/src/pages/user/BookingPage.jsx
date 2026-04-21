@@ -61,7 +61,7 @@ export default function BookingPage() {
 
   useEffect(() => {
     const loadSlots = async () => {
-      if (!form.booking_date || !form.service_id || !form.staff_id) {
+      if (!form.booking_date || !form.service_id) {
         setSlots([]);
         setNextAvailableSlots([]);
         return;
@@ -72,7 +72,7 @@ export default function BookingPage() {
         const response = await bookingService.getAvailableSlots(salonId, {
           date: form.booking_date,
           duration: selectedService?.duration || 30,
-          staff_id: form.staff_id,
+          staff_id: form.staff_id || null,
         });
 
         setSlots(response.data.slots || []);
@@ -94,7 +94,7 @@ export default function BookingPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!form.service_id || !form.staff_id || !form.booking_date || !form.start_time) {
+    if (!form.service_id || !form.booking_date || !form.start_time) {
       toast.error('Please fill in all required fields');
       return;
     }
@@ -104,7 +104,7 @@ export default function BookingPage() {
       await bookingService.create({
         salon_id: salonId,
         service_id: form.service_id,
-        staff_id: form.staff_id,
+        staff_id: form.staff_id || null,
         booking_date: form.booking_date,
         start_time: form.start_time,
         notes: form.notes,
@@ -113,7 +113,7 @@ export default function BookingPage() {
       setSuccess(true);
       toast.success('Booking confirmed');
     } catch (err) {
-      const message = err.response?.data?.error || 'Booking failed';
+      const message = err.response?.data?.details?.[0]?.message || err.response?.data?.error || 'Booking failed';
       toast.error(message);
 
       if (err.response?.data?.next_available_slots) {
@@ -222,7 +222,7 @@ export default function BookingPage() {
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Select Staff</CardTitle>
-            <CardDescription>Choose the staff member you want to book with.</CardDescription>
+            <CardDescription>Choose the staff member you want to book with (optional).</CardDescription>
           </CardHeader>
           <CardContent>
             <Select value={form.staff_id || undefined} onValueChange={(value) => setForm({ ...form, staff_id: value })}>
@@ -264,7 +264,7 @@ export default function BookingPage() {
           </CardContent>
         </Card>
 
-        {form.booking_date && form.service_id && form.staff_id && (
+        {form.booking_date && form.service_id && (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
@@ -331,13 +331,13 @@ export default function BookingPage() {
           </CardContent>
         </Card>
 
-        {form.service_id && form.staff_id && form.booking_date && form.start_time && (
+        {form.service_id && form.booking_date && form.start_time && (
           <Card className="border-primary/40">
             <CardContent className="p-4">
               <h3 className="mb-2 font-semibold">Booking Summary</h3>
               <div className="space-y-1 text-sm">
                 <p>Service: <span className="font-medium">{selectedService?.name}</span></p>
-                <p>Staff: <span className="font-medium">{selectedStaff?.name}</span></p>
+                {selectedStaff && <p>Staff: <span className="font-medium">{selectedStaff?.name}</span></p>}
                 <p>Date: <span className="font-medium">{new Date(form.booking_date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span></p>
                 <p>Time: <span className="font-medium">{form.start_time}</span></p>
                 <p>Price: <span className="font-medium">₹{Number(selectedService?.price || 0).toFixed(0)}</span></p>
@@ -350,7 +350,7 @@ export default function BookingPage() {
           type="submit"
           className="w-full"
           size="lg"
-          disabled={submitting || !form.service_id || !form.staff_id || !form.booking_date || !form.start_time}
+          disabled={submitting || !form.service_id || !form.booking_date || !form.start_time}
         >
           {submitting ? 'Confirming...' : 'Confirm Booking'}
         </Button>

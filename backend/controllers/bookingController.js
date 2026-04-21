@@ -6,18 +6,28 @@ const Staff = require('../models/Staff');
 exports.create = async (req, res, next) => {
   try {
     const { salon_id, service_id, staff_id, booking_date, start_time, notes } = req.body;
+    // Validate required fields
+    if (!salon_id || !service_id || !booking_date || !start_time) {
+      return res.status(400).json({ error: 'Missing required fields: salon_id, service_id, booking_date, start_time.' });
+    }
 
-    if (!staff_id) {
-      return res.status(400).json({ error: 'Staff selection is required.' });
+    const salon = await Salon.findById(salon_id);
+    if (!salon || !salon.is_approved || !salon.is_active) {
+      return res.status(400).json({ error: 'This salon is not available for booking yet.' });
     }
 
     // Get service to calculate end time
     const service = await Service.findById(service_id);
-    if (!service) return res.status(404).json({ error: 'Service not found.' });
+    if (!service || service.salon_id !== salon_id || !service.is_active) {
+      return res.status(404).json({ error: 'Service not found.' });
+    }
 
-    const staff = await Staff.findById(staff_id);
-    if (!staff || staff.salon_id !== salon_id || !staff.is_active) {
-      return res.status(400).json({ error: 'Selected staff member is not available.' });
+    // Validate staff member only if one is selected
+    if (staff_id) {
+      const staff = await Staff.findById(staff_id);
+      if (!staff || staff.salon_id !== salon_id || !staff.is_active) {
+        return res.status(400).json({ error: 'Selected staff member is not available.' });
+      }
     }
 
     // Calculate end time
@@ -108,6 +118,11 @@ exports.getAvailableSlots = async (req, res, next) => {
 
     if (!date) return res.status(400).json({ error: 'Date is required.' });
 
+    const salon = await Salon.findById(salonId);
+    if (!salon || !salon.is_approved || !salon.is_active) {
+      return res.status(404).json({ error: 'Salon not found.' });
+    }
+
     const timeline = await Booking.getAvailabilityTimeline(
       salonId,
       date,
@@ -123,7 +138,9 @@ exports.getAvailableSlots = async (req, res, next) => {
 // Shopkeeper: get salon bookings
 exports.getSalonBookings = async (req, res, next) => {
   try {
-    const salon = await Salon.findByOwner(req.user.id);
+    const salon = req.query.salon_id
+      ? await Salon.findByOwnerAndId(req.user.id, req.query.salon_id)
+      : await Salon.findByOwner(req.user.id);
     if (!salon) return res.status(404).json({ error: 'Salon not found.' });
 
     const { status, date, page, limit } = req.query;
@@ -151,8 +168,8 @@ exports.updateStatus = async (req, res, next) => {
     if (!booking) return res.status(404).json({ error: 'Booking not found.' });
 
     // Verify salon ownership
-    const salon = await Salon.findByOwner(req.user.id);
-    if (!salon || salon.id !== booking.salon_id) {
+    const salon = await Salon.findByOwnerAndId(req.user.id, booking.salon_id);
+    if (!salon) {
       return res.status(403).json({ error: 'Not authorized.' });
     }
 

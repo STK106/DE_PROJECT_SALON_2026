@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,10 +18,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Plus, Pencil, Trash2, Users, MoreHorizontal, Mail, Phone } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useShopkeeperSalons } from '@/hooks/useShopkeeperSalons';
 
 const emptyForm = { name: '', email: '', phone: '', role: 'stylist', specialization: '' };
 
 export default function ManageStaff() {
+  const { salons, selectedSalonId, setSelectedSalonId, loadingSalons } = useShopkeeperSalons();
   const [staff, setStaff] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -29,8 +32,14 @@ export default function ManageStaff() {
   const [saving, setSaving] = useState(false);
 
   const fetchStaff = async () => {
+    if (!selectedSalonId) {
+      setStaff([]);
+      setLoading(false);
+      return;
+    }
+
     try {
-      const res = await staffService.getMyStaff();
+      const res = await staffService.getMyStaff(selectedSalonId);
       setStaff(res.data.staff);
     } catch {
       toast.error('Failed to load staff');
@@ -39,7 +48,11 @@ export default function ManageStaff() {
     }
   };
 
-  useEffect(() => { fetchStaff(); }, []);
+  useEffect(() => {
+    if (!loadingSalons) {
+      fetchStaff();
+    }
+  }, [selectedSalonId, loadingSalons]);
 
   const handleOpen = (member = null) => {
     if (member) {
@@ -66,7 +79,7 @@ export default function ManageStaff() {
         await staffService.update(editing, form);
         toast.success('Staff updated');
       } else {
-        await staffService.create(form);
+        await staffService.create(form, selectedSalonId);
         toast.success('Staff added');
       }
       setDialogOpen(false);
@@ -99,10 +112,24 @@ export default function ManageStaff() {
                 Organize your team so customers can discover the right specialist for each service.
               </CardDescription>
             </div>
-            <Button onClick={() => handleOpen()}>
+            <Button onClick={() => handleOpen()} disabled={!selectedSalonId}>
               <Plus className="mr-2 h-4 w-4" />
               Add Staff
             </Button>
+          </div>
+
+          <div className="max-w-xs">
+            <Label className="mb-2 block">Salon</Label>
+            <Select value={selectedSalonId || undefined} onValueChange={setSelectedSalonId} disabled={loadingSalons || salons.length === 0}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select salon" />
+              </SelectTrigger>
+              <SelectContent>
+                {salons.map((item) => (
+                  <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
@@ -131,6 +158,10 @@ export default function ManageStaff() {
                   <Skeleton className="h-8" />
                 </div>
               ))}
+            </div>
+          ) : !selectedSalonId ? (
+            <div className="p-10 text-center">
+              <p className="text-muted-foreground">Create a salon first to manage staff.</p>
             </div>
           ) : staff.length === 0 ? (
             <div className="p-10 text-center">

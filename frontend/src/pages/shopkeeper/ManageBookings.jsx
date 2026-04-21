@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Calendar, Check, X, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useShopkeeperSalons } from '@/hooks/useShopkeeperSalons';
 
 const statusVariant = {
   pending: 'warning',
@@ -18,6 +19,7 @@ const statusVariant = {
 };
 
 export default function ManageBookings() {
+  const { salons, selectedSalonId, setSelectedSalonId, loadingSalons } = useShopkeeperSalons();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState('all');
@@ -26,9 +28,16 @@ export default function ManageBookings() {
   const [total, setTotal] = useState(0);
 
   const fetchBookings = async () => {
+    if (!selectedSalonId) {
+      setBookings([]);
+      setTotal(0);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
-      const params = { page, limit: 15 };
+      const params = { page, limit: 15, salon_id: selectedSalonId };
       if (status !== 'all') params.status = status;
       if (date) params.date = date;
       const res = await bookingService.getSalonBookings(params);
@@ -41,7 +50,11 @@ export default function ManageBookings() {
     }
   };
 
-  useEffect(() => { fetchBookings(); }, [status, date, page]);
+  useEffect(() => {
+    if (!loadingSalons) {
+      fetchBookings();
+    }
+  }, [selectedSalonId, loadingSalons, status, date, page]);
 
   const handleStatusUpdate = async (id, newStatus) => {
     try {
@@ -75,6 +88,17 @@ export default function ManageBookings() {
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3">
+        <Select value={selectedSalonId || undefined} onValueChange={(value) => { setSelectedSalonId(value); setPage(1); }} disabled={loadingSalons || salons.length === 0}>
+          <SelectTrigger className="w-52">
+            <SelectValue placeholder="Select salon" />
+          </SelectTrigger>
+          <SelectContent>
+            {salons.map((item) => (
+              <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
         <Select value={status} onValueChange={(value) => { setStatus(value); setPage(1); }}>
           <SelectTrigger className="w-40">
             <SelectValue placeholder="All Status" />
@@ -98,6 +122,8 @@ export default function ManageBookings() {
         <CardContent className="p-0">
           {loading ? (
             <div className="p-8 text-center text-muted-foreground">Loading...</div>
+          ) : !selectedSalonId ? (
+            <div className="p-8 text-center text-muted-foreground">Create a salon first to manage bookings.</div>
           ) : bookings.length === 0 ? (
             <div className="p-8 text-center">
               <Calendar className="h-10 w-10 text-muted-foreground mx-auto mb-3" />

@@ -9,7 +9,7 @@ const validate = require('../middleware/validate');
 router.post('/', auth, roleCheck('user'), [
   body('salon_id').isUUID().withMessage('Valid salon ID required'),
   body('service_id').isUUID().withMessage('Valid service ID required'),
-  body('staff_id').isUUID().withMessage('Valid staff ID required'),
+  body('staff_id').optional({ nullable: true, checkFalsy: true }).isUUID().withMessage('Valid staff ID required'),
   body('booking_date').isDate().withMessage('Valid date required'),
   body('start_time').matches(/^\d{2}:\d{2}$/).withMessage('Valid time required (HH:MM)')
 ], validate, bookingController.create);

@@ -4,13 +4,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Trash2, CalendarOff } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useShopkeeperSalons } from '@/hooks/useShopkeeperSalons';
 
 export default function Availability() {
+  const { salons, selectedSalonId, setSelectedSalonId, loadingSalons } = useShopkeeperSalons();
   const [blockedSlots, setBlockedSlots] = useState([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({
@@ -18,8 +21,14 @@ export default function Availability() {
   });
 
   const fetchBlocked = async () => {
+    if (!selectedSalonId) {
+      setBlockedSlots([]);
+      setLoading(false);
+      return;
+    }
+
     try {
-      const res = await salonService.getBlockedSlots();
+      const res = await salonService.getBlockedSlots(selectedSalonId);
       setBlockedSlots(res.data.blocked_slots);
     } catch {
       toast.error('Failed to load availability');
@@ -28,7 +37,11 @@ export default function Availability() {
     }
   };
 
-  useEffect(() => { fetchBlocked(); }, []);
+  useEffect(() => {
+    if (!loadingSalons) {
+      fetchBlocked();
+    }
+  }, [selectedSalonId, loadingSalons]);
 
   const handleAdd = async (e) => {
     e.preventDefault();
@@ -39,7 +52,7 @@ export default function Availability() {
         ...form,
         start_time: form.is_full_day ? null : form.start_time,
         end_time: form.is_full_day ? null : form.end_time,
-      });
+      }, selectedSalonId);
       toast.success('Slot blocked');
       setForm({ blocked_date: '', start_time: '', end_time: '', reason: '', is_full_day: false });
       fetchBlocked();
@@ -50,7 +63,7 @@ export default function Availability() {
 
   const handleRemove = async (id) => {
     try {
-      await salonService.removeBlockedSlot(id);
+      await salonService.removeBlockedSlot(id, selectedSalonId);
       toast.success('Blocked slot removed');
       fetchBlocked();
     } catch {
@@ -66,6 +79,18 @@ export default function Availability() {
         <CardContent className="p-5">
           <h1 className="text-2xl font-bold">Availability Management</h1>
           <p className="text-sm text-muted-foreground">Block dates and times to avoid scheduling conflicts.</p>
+          <div className="mt-4 max-w-xs">
+            <Select value={selectedSalonId || undefined} onValueChange={setSelectedSalonId} disabled={loadingSalons || salons.length === 0}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select salon" />
+              </SelectTrigger>
+              <SelectContent>
+                {salons.map((item) => (
+                  <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </CardContent>
       </Card>
 
@@ -111,7 +136,7 @@ export default function Availability() {
               </div>
             )}
 
-            <Button type="submit">
+            <Button type="submit" disabled={!selectedSalonId}>
               <Plus className="h-4 w-4 mr-2" /> Block Slot
             </Button>
           </form>
@@ -126,6 +151,8 @@ export default function Availability() {
         <CardContent className="p-0">
           {loading ? (
             <div className="p-8 text-center text-muted-foreground">Loading...</div>
+          ) : !selectedSalonId ? (
+            <div className="p-8 text-center text-muted-foreground">Create a salon first to manage availability.</div>
           ) : blockedSlots.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground">No blocked slots</div>
           ) : (

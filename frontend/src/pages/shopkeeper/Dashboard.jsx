@@ -4,18 +4,28 @@ import { Calendar, CalendarCheck, Clock, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import DashboardOverview from '@/components/common/DashboardOverview';
 import { bookingService } from '@/services/bookingService';
+import { useShopkeeperSalons } from '@/hooks/useShopkeeperSalons';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function ShopkeeperDashboard() {
+  const { salons, selectedSalonId, setSelectedSalonId, loadingSalons } = useShopkeeperSalons();
   const [stats, setStats] = useState(null);
   const [recentBookings, setRecentBookings] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
+      if (!selectedSalonId) {
+        setStats(null);
+        setRecentBookings([]);
+        setLoading(false);
+        return;
+      }
+
       try {
         const [statsResponse, bookingsResponse] = await Promise.all([
-          salonService.getStats(),
-          bookingService.getSalonBookings({ limit: 5 }),
+          salonService.getStats(selectedSalonId),
+          bookingService.getSalonBookings({ limit: 5, salon_id: selectedSalonId }),
         ]);
         setStats(statsResponse.data.stats);
         setRecentBookings(bookingsResponse.data.bookings);
@@ -26,7 +36,7 @@ export default function ShopkeeperDashboard() {
       }
     };
     fetchStats();
-  }, []);
+  }, [selectedSalonId]);
 
   const dashboardStats = stats
     ? [
@@ -63,7 +73,7 @@ export default function ShopkeeperDashboard() {
       ]
     : [];
 
-  if (!loading && !stats) {
+  if (!loading && !stats && salons.length === 0) {
     return (
       <div className="rounded-lg border bg-card py-16 text-center">
         <h3 className="mb-2 text-lg font-semibold">No salon found</h3>
@@ -72,19 +82,37 @@ export default function ShopkeeperDashboard() {
     );
   }
 
+  const selector = (
+    <div className="mb-4 max-w-xs">
+      <Select value={selectedSalonId || undefined} onValueChange={setSelectedSalonId} disabled={loadingSalons || salons.length === 0}>
+        <SelectTrigger>
+          <SelectValue placeholder="Select salon" />
+        </SelectTrigger>
+        <SelectContent>
+          {salons.map((item) => (
+            <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+
   return (
-    <DashboardOverview
-      title="Shopkeeper Dashboard"
-      description="Track bookings, keep the queue moving, and stay on top of today’s salon flow."
-      badgeLabel="Live overview"
-      actionLabel="Open bookings"
-      actionTo="/shopkeeper/bookings"
-      stats={dashboardStats}
-      focusCards={focusCards}
-      recentBookings={recentBookings}
-      loading={loading}
-      emptyStateTitle="No bookings waiting"
-      emptyStateDescription="Your latest bookings will appear here once customers start scheduling appointments."
-    />
+    <div>
+      {selector}
+      <DashboardOverview
+        title="Shopkeeper Dashboard"
+        description="Track bookings, keep the queue moving, and stay on top of today’s salon flow."
+        badgeLabel="Live overview"
+        actionLabel="Open bookings"
+        actionTo="/shopkeeper/bookings"
+        stats={dashboardStats}
+        focusCards={focusCards}
+        recentBookings={recentBookings}
+        loading={loading}
+        emptyStateTitle="No bookings waiting"
+        emptyStateDescription="Your latest bookings will appear here once customers start scheduling appointments."
+      />
+    </div>
   );
 }
