@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { resolveMediaUrl } from '@/lib/media';
 import toast from 'react-hot-toast';
 
+const FALLBACK_PRODUCT_IMAGE = '/images/fallback-product.svg';
+
 export default function ProductOrderDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -50,7 +52,19 @@ export default function ProductOrderDetailsPage() {
         <CardContent className="space-y-3">
           {order.items.map((item) => (
             <div key={item.id} className="flex items-center gap-4 rounded-lg border p-4">
-              {item.image_urls?.[0] ? <img src={resolveMediaUrl(item.image_urls[0])} alt={item.product_name} className="h-16 w-16 rounded-md object-cover" /> : <div className="h-16 w-16 rounded-md border bg-muted" />}
+              {item.image_urls?.[0] ? (
+                <img
+                  src={resolveMediaUrl(item.image_urls[0])}
+                  alt={item.product_name}
+                  onError={(event) => {
+                    event.currentTarget.onerror = null;
+                    event.currentTarget.src = FALLBACK_PRODUCT_IMAGE;
+                  }}
+                  className="h-16 w-16 rounded-md object-cover"
+                />
+              ) : (
+                <img src={FALLBACK_PRODUCT_IMAGE} alt="Product" className="h-16 w-16 rounded-md object-cover" />
+              )}
               <div className="flex-1">
                 <p className="font-medium">{item.product_name}</p>
                 <p className="text-sm text-muted-foreground">Qty {item.quantity}</p>

@@ -27,17 +27,19 @@ export function useShopkeeperSalons() {
     storeSalonId(id || '');
   }, []);
 
-  const refreshSalons = useCallback(async (preferredSalonId) => {
+  const refreshSalons = useCallback(async () => {
     setLoadingSalons(true);
     try {
-      const candidateSalonId = preferredSalonId ?? selectedSalonId;
-      const res = await salonService.getMySalon(candidateSalonId || undefined);
+      const res = await salonService.getMySalon();
       const ownerSalons = res.data.salons || (res.data.salon ? [res.data.salon] : []);
-      const activeSalon = res.data.salon || ownerSalons[0] || null;
-      const nextSalonId = activeSalon?.id || '';
-
       setSalons(ownerSalons);
-      if (nextSalonId !== selectedSalonId) {
+
+      // Determine which salon to select
+      const stored = selectedSalonId;
+      const salonExists = ownerSalons.some(s => s.id === stored);
+      const nextSalonId = (salonExists ? stored : ownerSalons[0]?.id) || '';
+
+      if (nextSalonId && nextSalonId !== selectedSalonId) {
         setSelectedSalonId(nextSalonId);
       }
     } catch {

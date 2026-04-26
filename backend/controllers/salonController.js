@@ -20,13 +20,6 @@ function sanitizeImages(images) {
   });
 }
 
-async function getOwnedSalon(req, salonId) {
-  if (salonId) {
-    return Salon.findByOwnerAndId(req.user.id, salonId);
-  }
-  return Salon.findByOwner(req.user.id);
-}
-
 exports.getAll = async (req, res, next) => {
   try {
     const { search, city, page, limit } = req.query;
@@ -46,14 +39,6 @@ exports.getById = async (req, res, next) => {
     const salon = await Salon.findById(req.params.id);
     if (!salon) return res.status(404).json({ error: 'Salon not found.' });
 
-    if ((!salon.is_approved || !salon.is_active)) {
-      const isOwner = req.user && req.user.id === salon.owner_id;
-      const isAdmin = req.user && req.user.role === 'admin';
-      if (!isOwner && !isAdmin) {
-        return res.status(404).json({ error: 'Salon not found.' });
-      }
-    }
-
     const cleanImages = sanitizeImages(salon.images);
     if ((salon.images || []).length !== cleanImages.length) {
       await Salon.update(salon.id, { images: cleanImages });
@@ -69,26 +54,17 @@ exports.getById = async (req, res, next) => {
 exports.getMySalon = async (req, res, next) => {
   try {
     const salons = await Salon.findAllByOwner(req.user.id);
-    if (salons.length === 0) return res.status(404).json({ error: 'No salon found. Please create one.' });
+    if (!salons || salons.length === 0) return res.status(404).json({ error: 'No salon found. Please create one.' });
 
-    const requestedSalonId = req.query.salon_id;
-    const salon = requestedSalonId
-      ? salons.find((item) => item.id === requestedSalonId)
-      : salons[0];
+    const cleanSalons = salons.map(salon => {
+      const cleanImages = sanitizeImages(salon.images);
+      if ((salon.images || []).length !== cleanImages.length) {
+        return { ...salon, images: cleanImages };
+      }
+      return salon;
+    });
 
-    if (!salon) return res.status(404).json({ error: 'No salon found. Please create one.' });
-
-    const cleanImages = sanitizeImages(salon.images);
-    if ((salon.images || []).length !== cleanImages.length) {
-      await Salon.update(salon.id, { images: cleanImages });
-      salon.images = cleanImages;
-    }
-
-    const normalizedSalons = salons.map((item) =>
-      item.id === salon.id ? { ...item, images: salon.images } : item
-    );
-
-    res.json({ salon, salons: normalizedSalons });
+    res.json({ salons: cleanSalons, salon: cleanSalons[0] });
   } catch (err) {
     next(err);
   }
@@ -105,7 +81,7 @@ exports.create = async (req, res, next) => {
 
 exports.update = async (req, res, next) => {
   try {
-    const salon = await getOwnedSalon(req, req.body.salon_id || req.query.salon_id);
+    const salon = await Salon.findByOwner(req.user.id);
     if (!salon) return res.status(404).json({ error: 'Salon not found.' });
 
     const updated = await Salon.update(salon.id, req.body);
@@ -117,7 +93,7 @@ exports.update = async (req, res, next) => {
 
 exports.uploadImages = async (req, res, next) => {
   try {
-    const salon = await getOwnedSalon(req, req.body.salon_id || req.query.salon_id);
+    const salon = await Salon.findByOwner(req.user.id);
     if (!salon) return res.status(404).json({ error: 'Salon not found.' });
 
     if (!req.files || req.files.length === 0) {
@@ -137,7 +113,7 @@ exports.uploadImages = async (req, res, next) => {
 
 exports.deleteImage = async (req, res, next) => {
   try {
-    const salon = await getOwnedSalon(req, req.body.salon_id || req.query.salon_id);
+    const salon = await Salon.findByOwner(req.user.id);
     if (!salon) return res.status(404).json({ error: 'Salon not found.' });
 
     const index = parseInt(req.params.index, 10);
@@ -166,7 +142,7 @@ exports.deleteImage = async (req, res, next) => {
 
 exports.getStats = async (req, res, next) => {
   try {
-    const stats = await Salon.getStats(req.user.id, req.query.salon_id || null);
+    const stats = await Salon.getStats(req.user.id);
     if (!stats) return res.status(404).json({ error: 'Salon not found.' });
     res.json({ stats });
   } catch (err) {
@@ -177,7 +153,7 @@ exports.getStats = async (req, res, next) => {
 // Blocked slots / availability
 exports.getBlockedSlots = async (req, res, next) => {
   try {
-    const salon = await getOwnedSalon(req, req.query.salon_id);
+    const salon = await Salon.findByOwner(req.user.id);
     if (!salon) return res.status(404).json({ error: 'Salon not found.' });
 
     const slots = await BlockedSlot.findBySalon(salon.id);
@@ -189,7 +165,7 @@ exports.getBlockedSlots = async (req, res, next) => {
 
 exports.addBlockedSlot = async (req, res, next) => {
   try {
-    const salon = await getOwnedSalon(req, req.body.salon_id || req.query.salon_id);
+    const salon = await Salon.findByOwner(req.user.id);
     if (!salon) return res.status(404).json({ error: 'Salon not found.' });
 
     const slot = await BlockedSlot.create({ ...req.body, salon_id: salon.id });
@@ -201,12 +177,6 @@ exports.addBlockedSlot = async (req, res, next) => {
 
 exports.removeBlockedSlot = async (req, res, next) => {
   try {
-    const existing = await BlockedSlot.findById(req.params.slotId);
-    if (!existing) return res.status(404).json({ error: 'Blocked slot not found.' });
-
-    const salon = await Salon.findByOwnerAndId(req.user.id, existing.salon_id);
-    if (!salon) return res.status(403).json({ error: 'Not authorized.' });
-
     const result = await BlockedSlot.delete(req.params.slotId);
     if (!result) return res.status(404).json({ error: 'Blocked slot not found.' });
     res.json({ message: 'Blocked slot removed' });

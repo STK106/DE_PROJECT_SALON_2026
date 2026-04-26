@@ -3,96 +3,54 @@ import api from './api';
 export const salonService = {
   getAll: (params) => api.get('/salons', { params }),
   getById: (id) => api.get(`/salons/${id}`),
-  getMySalon: (salonId) => api.get('/salons/owner/my-salon', {
-    params: salonId ? { salon_id: salonId } : undefined,
-  }),
-  getStats: (salonId) => api.get('/salons/owner/stats', {
-    params: salonId ? { salon_id: salonId } : undefined,
-  }),
+  getMySalon: (salonId) => api.get('/salons/owner/my-salon', { params: salonId ? { salon_id: salonId } : undefined }),
+  getStats: () => api.get('/salons/owner/stats'),
   create: (data) => api.post('/salons', data),
-  update: (data, salonId) => api.put('/salons', {
-    ...data,
-    ...(salonId ? { salon_id: salonId } : {}),
-  }),
-  uploadImages: (formData, salonId) => api.post('/salons/images', formData, {
-    params: salonId ? { salon_id: salonId } : undefined,
+  update: (data) => api.put('/salons', data),
+  uploadImages: (formData) => api.post('/salons/images', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   }),
-  deleteImage: (index, salonId) => api.delete(`/salons/images/${index}`, {
-    params: salonId ? { salon_id: salonId } : undefined,
+  deleteImage: (index) => api.delete(`/salons/images/${index}`),
+  rateSalon: (id, rating, bookingId = null) => api.post(`/salons/${id}/rate`, {
+    rating,
+    ...(bookingId ? { booking_id: bookingId } : {}),
   }),
-  rateSalon: (id, bookingId, rating) => api.post(`/salons/${id}/rate`, { booking_id: bookingId, rating }),
-  getBlockedSlots: (salonId) => api.get('/salons/availability/blocked', {
-    params: salonId ? { salon_id: salonId } : undefined,
-  }),
-  addBlockedSlot: (data, salonId) => api.post('/salons/availability/block', {
-    ...data,
-    ...(salonId ? { salon_id: salonId } : {}),
-  }),
-  removeBlockedSlot: (id, salonId) => api.delete(`/salons/availability/block/${id}`, {
-    params: salonId ? { salon_id: salonId } : undefined,
-  }),
+  getBlockedSlots: () => api.get('/salons/availability/blocked'),
+  addBlockedSlot: (data) => api.post('/salons/availability/block', data),
+  removeBlockedSlot: (id) => api.delete(`/salons/availability/block/${id}`),
 };
 
 export const serviceService = {
   getBySalon: (salonId) => api.get(`/services/salon/${salonId}`),
-  getMyServices: (salonId) => api.get('/services/my-services', {
-    params: salonId ? { salon_id: salonId } : undefined,
-  }),
-  create: (data, salonId) => api.post('/services', {
-    ...data,
-    ...(salonId ? { salon_id: salonId } : {}),
-  }),
+  getMyServices: () => api.get('/services/my-services'),
+  create: (data) => api.post('/services', data),
   update: (id, data) => api.put(`/services/${id}`, data),
   delete: (id) => api.delete(`/services/${id}`),
 };
 
 export const staffService = {
   getBySalon: (salonId) => api.get(`/staff/salon/${salonId}`),
-  getMyStaff: (salonId) => api.get('/staff/my-staff', {
-    params: salonId ? { salon_id: salonId } : undefined,
-  }),
-  create: (data, salonId) => api.post('/staff', {
-    ...data,
-    ...(salonId ? { salon_id: salonId } : {}),
-  }),
+  getMyStaff: (salonId) => api.get('/staff/my-staff', { params: salonId ? { salon_id: salonId } : undefined }),
+  create: (data) => api.post('/staff', data),
   update: (id, data) => api.put(`/staff/${id}`, data),
   delete: (id) => api.delete(`/staff/${id}`),
 };
 
 export const productService = {
   getBySalon: (salonId) => api.get(`/products/salon/${salonId}`),
-  getMyProducts: (salonId) => api.get('/products/my-products', {
-    params: salonId ? { salon_id: salonId } : undefined,
-  }),
-  create: (data, salonId) => {
-    if (data instanceof FormData) {
-      if (salonId) data.append('salon_id', salonId);
-      return api.post('/products', data, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-    }
-
-    return api.post('/products', {
-      ...data,
-      ...(salonId ? { salon_id: salonId } : {}),
-    });
+  getMyProducts: (salonId) => api.get('/products/my-products', { params: salonId ? { salon_id: salonId } : undefined }),
+  create: (formData, salonId) => {
+    if (salonId) formData.append('salon_id', salonId);
+    return api.post('/products', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
   },
-  update: (id, data) => {
-    if (data instanceof FormData) {
-      return api.put(`/products/${id}`, data, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-    }
-    return api.put(`/products/${id}`, data);
-  },
+  update: (id, formData) => api.put(`/products/${id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
   delete: (id) => api.delete(`/products/${id}`),
-  rateProduct: (id, rating, comment) => api.post(`/products/${id}/rate`, { rating, comment }),
+  rateProduct: (id, rating) => api.post(`/products/${id}/rate`, { rating }),
 };
 
 export const productOrderService = {
   createCheckout: (data) => api.post('/product-orders/checkout', data),
-  getMyOrders: (params) => api.get('/product-orders/my-orders', { params }),
+  getMyOrders: () => api.get('/product-orders/my-orders'),
   getSalonOrders: (params) => api.get('/product-orders/salon-orders', { params }),
   getById: (id) => api.get(`/product-orders/${id}`),
   updateStatus: (id, order_status) => api.put(`/product-orders/${id}/status`, { order_status }),

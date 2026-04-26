@@ -3,21 +3,37 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Star, MapPin, Scissors } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useMemo, useState } from 'react';
 import { resolveMediaUrl } from '@/lib/media';
+
+const FALLBACK_SALON_IMAGE = '/images/fallback-salon.svg';
 
 export default function SalonCard({ salon }) {
   const navigate = useNavigate();
+  const [imageFailed, setImageFailed] = useState(false);
   const hasRatings = Number(salon.total_ratings || 0) > 0;
   const displayRating = hasRatings ? Number(salon.rating).toFixed(1) : '0.0';
+  const imageSrc = useMemo(() => {
+    if (!Array.isArray(salon?.images) || salon.images.length === 0) return '';
+    return resolveMediaUrl(salon.images[0]);
+  }, [salon?.images]);
+  const showImage = Boolean(imageSrc) && !imageFailed;
 
   return (
     <Card className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer group"
       onClick={() => navigate(`/salons/${salon.id}`)}>
       <div className="aspect-video relative bg-muted overflow-hidden">
-        {salon.images && salon.images.length > 0 ? (
+        {showImage ? (
           <img
-            src={resolveMediaUrl(salon.images[0])}
+            src={imageSrc}
             alt={salon.name}
+            onError={(event) => {
+              if (event.currentTarget.src.includes(FALLBACK_SALON_IMAGE)) {
+                setImageFailed(true);
+                return;
+              }
+              event.currentTarget.src = FALLBACK_SALON_IMAGE;
+            }}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
         ) : (

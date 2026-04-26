@@ -29,14 +29,15 @@ export default function BookingCard({ booking, onCancel, onRated, showActions = 
     if (!selected) return toast.error('Please select a star rating');
     setSubmitting(true);
     try {
-      await salonService.rateSalon(booking.salon_id, booking.id, selected);
+      await salonService.rateSalon(booking.salon_id, selected, booking.id);
       toast.success('Thank you for your rating!');
       setAlreadyRated(true);
       setShowRating(false);
       setSelected(0);
       if (onRated) onRated(booking.id);
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to submit rating');
+      const detail = err.response?.data?.details?.[0]?.message;
+      toast.error(detail || err.response?.data?.error || 'Failed to submit rating');
     } finally {
       setSubmitting(false);
     }
@@ -97,11 +98,9 @@ export default function BookingCard({ booking, onCancel, onRated, showActions = 
             <p className="text-sm font-medium mb-2">Rate your experience at {booking.salon_name}</p>
             <div className="flex items-center gap-1 mb-3">
               {[1, 2, 3, 4, 5].map((star) => (
-                <Button
+                <button
                   key={star}
                   type="button"
-                  variant="ghost"
-                  size="icon"
                   onMouseEnter={() => setHovered(star)}
                   onMouseLeave={() => setHovered(0)}
                   onClick={() => setSelected(star)}
@@ -114,7 +113,7 @@ export default function BookingCard({ booking, onCancel, onRated, showActions = 
                         : 'text-muted-foreground'
                     }`}
                   />
-                </Button>
+                </button>
               ))}
               {selected > 0 && (
                 <span className="ml-2 text-sm text-muted-foreground">{selected} / 5</span>

@@ -15,6 +15,8 @@ import toast from 'react-hot-toast';
 import { useShopkeeperSalons } from '@/hooks/useShopkeeperSalons';
 import { resolveMediaUrl } from '@/lib/media';
 
+const FALLBACK_PRODUCT_IMAGE = '/images/fallback-product.svg';
+
 const emptyForm = { name: '', description: '', price: '', stock: '0', category: '' };
 
 function getProductImages(product) {
@@ -207,12 +209,14 @@ export default function ManageProducts() {
                           <img
                             src={resolveMediaUrl(getProductImages(product)[0])}
                             alt={product.name}
+                            onError={(event) => {
+                              event.currentTarget.onerror = null;
+                              event.currentTarget.src = FALLBACK_PRODUCT_IMAGE;
+                            }}
                             className="h-12 w-12 rounded-md border object-cover"
                           />
                         ) : (
-                          <div className="flex h-12 w-12 items-center justify-center rounded-md border bg-muted">
-                            <Package className="h-5 w-5 text-muted-foreground" />
-                          </div>
+                          <img src={FALLBACK_PRODUCT_IMAGE} alt="Product" className="h-12 w-12 rounded-md border object-cover" />
                         )}
                         <div>
                           <p className="font-medium">{product.name}</p>
@@ -332,6 +336,10 @@ export default function ManageProducts() {
                       key={`${preview}-${index}`}
                       src={resolveMediaUrl(preview)}
                       alt={`Product preview ${index + 1}`}
+                      onError={(event) => {
+                        event.currentTarget.onerror = null;
+                        event.currentTarget.src = FALLBACK_PRODUCT_IMAGE;
+                      }}
                       className="h-24 w-24 rounded-md border object-cover"
                     />
                   ))}

@@ -1,77 +1,25 @@
 const { pool } = require('../config/db');
 const fs = require('fs');
 const path = require('path');
-
-const MIGRATIONS_DIR = path.join(__dirname, 'migrations');
-const MIGRATION_TABLE = 'schema_migrations';
-
-function getMigrationFiles() {
-  if (!fs.existsSync(MIGRATIONS_DIR)) {
-    return [];
-  }
-
-  return fs
-    .readdirSync(MIGRATIONS_DIR)
-    .filter((file) => file.endsWith('.sql'))
-    .sort((left, right) => left.localeCompare(right, undefined, { numeric: true }));
-}
-
-async function ensureMigrationTable(client) {
-  await client.query(`
-    CREATE TABLE IF NOT EXISTS ${MIGRATION_TABLE} (
-      id SERIAL PRIMARY KEY,
-      filename VARCHAR(255) UNIQUE NOT NULL,
-      applied_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-}
-
-async function getAppliedMigrations(client) {
-  const result = await client.query(`SELECT filename FROM ${MIGRATION_TABLE}`);
-  return new Set(result.rows.map((row) => row.filename));
-}
-
-async function applyMigration(client, filename) {
-  const migrationPath = path.join(MIGRATIONS_DIR, filename);
-  const migrationSql = fs.readFileSync(migrationPath, 'utf8');
-
-  await client.query('BEGIN');
-  try {
-    await client.query(migrationSql);
-    await client.query(
-      `INSERT INTO ${MIGRATION_TABLE} (filename) VALUES ($1)`,
-      [filename]
-    );
-    await client.query('COMMIT');
-    console.log(`Applied migration: ${filename}`);
-  } catch (error) {
-    await client.query('ROLLBACK');
-    throw error;
-  }
-}
+const bcrypt = require('bcryptjs');
 
 async function initDatabase() {
   const client = await pool.connect();
   try {
-    const migrationFiles = getMigrationFiles();
+    const schemaPath = path.join(__dirname, 'schema.sql');
+    const schema = fs.readFileSync(schemaPath, 'utf8');
 
-    if (migrationFiles.length === 0) {
-      console.log('No database migrations found');
-      return;
-    }
+    // Split and execute statements
+    await client.query(schema);
+    console.log('Database schema created successfully');
 
-    await ensureMigrationTable(client);
-    const appliedMigrations = await getAppliedMigrations(client);
-
-    for (const filename of migrationFiles) {
-      if (appliedMigrations.has(filename)) {
-        continue;
-      }
-
-      await applyMigration(client, filename);
-    }
-
-    console.log('Database migrations completed successfully');
+    // Update admin password with proper bcrypt hash
+    const hashedPassword = await bcrypt.hash('admin123', 10);
+    await client.query(
+      `UPDATE users SET password = $1 WHERE email = 'admin@salon.com'`,
+      [hashedPassword]
+    );
+    console.log('Default admin user created (admin@salon.com / admin123)');
   } catch (err) {
     console.error('Database initialization error:', err.message);
   } finally {

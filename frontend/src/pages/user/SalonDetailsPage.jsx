@@ -12,6 +12,9 @@ import { resolveMediaUrl } from '@/lib/media';
 import { addToCart } from '@/lib/cart';
 import toast from 'react-hot-toast';
 
+const FALLBACK_SALON_IMAGE = '/images/fallback-salon.svg';
+const FALLBACK_PRODUCT_IMAGE = '/images/fallback-product.svg';
+
 function getProductImages(product) {
   if (Array.isArray(product?.image_urls) && product.image_urls.length > 0) {
     return product.image_urls;
@@ -176,6 +179,10 @@ export default function SalonDetailsPage() {
               <img 
                 src={resolveMediaUrl(salon.images[currentImageIndex])} 
                 alt={salon.name} 
+                onError={(event) => {
+                  event.currentTarget.onerror = null;
+                  event.currentTarget.src = FALLBACK_SALON_IMAGE;
+                }}
                 className="w-full h-80 object-cover"
               />
             </div>
@@ -299,6 +306,10 @@ export default function SalonDetailsPage() {
                                   key={`${product.id}-${index}`}
                                   src={resolveMediaUrl(image)}
                                   alt={`${product.name} ${index + 1}`}
+                                  onError={(event) => {
+                                    event.currentTarget.onerror = null;
+                                    event.currentTarget.src = FALLBACK_PRODUCT_IMAGE;
+                                  }}
                                   className="h-16 w-16 rounded-md border object-cover"
                                 />
                               ))}
